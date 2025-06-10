@@ -58,7 +58,44 @@ Sistem Point of Sale (POS) untuk brand Grebeg Suro. Aplikasi ini terdiri dari *b
 4.  Jalankan aplikasi *backend*.
     ```bash
     npm start
+    ```  
+
+Menjalankan Backend dengan PM2
+
+Untuk menjalankan backend secara background dan tetap aktif setelah server direstart, gunakan PM2:
+
+    Instal PM2 (jika belum):  
     ```
+    npm install -g pm2
+    ```
+    Jalankan backend dengan PM2:
+
+    ```
+    pm2 start index.js --name pos-backend
+    ```  
+
+Simpan konfigurasi agar otomatis dijalankan saat server reboot:
+
+```
+pm2 save
+pm2 startup
+```  
+
+Perintah tambahan:
+
+    Melihat status proses:
+```
+pm2 status
+```
+
+Me-restart backend:
+```
+pm2 restart pos-backend
+```
+
+Menghentikan backend:
+
+pm2 stop pos-backend
 
 ### Frontend
 
@@ -126,12 +163,6 @@ pos-grebeg-suro/
     ├── public/       # File-file statis
     └── package.json  # Dependencies frontend
 ```  
-
-## Kontribusi
-
-
-Jika Anda ingin berkontribusi pada proyek ini, silakan fork repositori ini dan buat *pull request*.
-
 
 ## Lisensi
 
