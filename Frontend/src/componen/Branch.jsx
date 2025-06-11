@@ -15,8 +15,9 @@ import {
   TableContainer,
   Paper,
 } from "@mui/material";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+import { Edit, Delete } from "@mui/icons-material";
+// import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+// import "leaflet/dist/leaflet.css";
 import axios from "axios";
 import L from "leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
@@ -129,7 +130,7 @@ export const Branch = () => {
             <TableRow>
               <TableCell>Nama Cabang</TableCell>
               <TableCell>Alamat</TableCell>
-              <TableCell>Koordinat</TableCell>
+              {/* <TableCell>Koordinat</TableCell> */}
               <TableCell>Aksi</TableCell>
             </TableRow>
           </TableHead>
@@ -138,11 +139,12 @@ export const Branch = () => {
               <TableRow key={branch.uuid}>
                 <TableCell>{branch.namacabang}</TableCell>
                 <TableCell>{branch.alamat}</TableCell>
-                <TableCell>{branch.koordinat}</TableCell>
+                {/* <TableCell>{branch.koordinat}</TableCell> */}
                 <TableCell>
                   <Button
                     variant="outlined"
                     color="primary"
+                    startIcon={<Edit />}
                     onClick={() => handleOpenModal(branch)}
                     sx={{ marginRight: 1 }}
                   >
@@ -150,7 +152,8 @@ export const Branch = () => {
                   </Button>
                   <Button
                     variant="outlined"
-                    color="secondary"
+                    color="error"
+                    startIcon={<Delete />}
                     onClick={() => handleDeleteCabang(branch.uuid)}
                   >
                     Hapus
@@ -183,14 +186,14 @@ export const Branch = () => {
             value={currentCabang.alamat}
             onChange={handleFormChange}
           />
-          <TextField
+          {/* <TextField
             name="koordinat"
             label="Koordinat (Lat,Lng)"
             fullWidth
             margin="normal"
             value={currentCabang.koordinat}
             onChange={handleFormChange}
-          />
+          /> */}
           <Box sx={{ display: "flex", justifyContent: "flex-end", marginTop: 2 }}>
             <Button onClick={handleCloseModal} sx={{ marginRight: 1 }}>
               Batal
@@ -202,7 +205,7 @@ export const Branch = () => {
         </Card>
       </Modal>
 
-      <Typography variant="h5" gutterBottom sx={{ marginTop: 4 }}>
+      {/* <Typography variant="h5" gutterBottom sx={{ marginTop: 4 }}>
         Lokasi Cabang
       </Typography>
       <MapContainer
@@ -228,7 +231,7 @@ export const Branch = () => {
           }
           return null;
         })}
-      </MapContainer>
+      </MapContainer> */}
     </Box>
   );
 };

@@ -1,4 +1,7 @@
+const { Op } = require('sequelize');
 const Transaksi = require('../models/transaksiModel');
+const User = require('../models/userModel');
+const Cabang = require('../models/cabangModel');
 
 exports.getCustomerList = async (req, res) => {
     try {
@@ -6,12 +9,33 @@ exports.getCustomerList = async (req, res) => {
         // supaya customer yang sama tidak duplikat, kita gunakan GROUP BY di raw query atau distinct di sequelize.
 
         // Menggunakan raw query dengan sequelize:
-        const customers = await Transaksi.sequelize.query(
-            `SELECT DISTINCT customer_name, customer_phone FROM transaksis WHERE customer_name IS NOT NULL AND customer_phone IS NOT NULL`,
-            {
-                type: Transaksi.sequelize.QueryTypes.SELECT
-            }
-        );
+        const customers = await Transaksi.findAll({
+            attributes: [
+                'customer_name',
+                'customer_phone',
+                'useruuid'
+            ],
+            where: {
+                customer_name: { [Op.not]: null },
+                customer_phone: { [Op.not]: null }
+            },
+            include: [
+                {
+                    model: User,
+                    attributes: ['username'],
+                    include: [
+                        {
+                            model: Cabang,
+                            attributes: ['namacabang']
+                        }
+                    ]
+                }
+            ],
+            group: ['customer_name', 'customer_phone', 'useruuid']
+        });
+
+
+        console.log(customers);
 
         res.status(200).json({
             status: 200,

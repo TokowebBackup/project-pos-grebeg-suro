@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 const db = require('../config/database.js')
 const Cabang = require('./cabangModel.js')
 
-const {DataTypes} = Sequelize
+const { DataTypes } = Sequelize
 
 const User = db.define('User', {
   uuid: {
@@ -31,6 +31,7 @@ const User = db.define('User', {
   tableName: 'users',
 });
 
+// User.belongsTo(Cabang, { foreignKey: 'cabangId', as: 'cabang' });
 User.belongsTo(Cabang, { foreignKey: 'cabanguuid' });
 Cabang.hasMany(User, { foreignKey: 'cabanguuid' });
 

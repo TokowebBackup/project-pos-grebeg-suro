@@ -1,7 +1,8 @@
 const Sequelize = require('sequelize');
 const db = require('../config/database');
+const User = require('./userModel');
 
-const {DataTypes} = Sequelize
+const { DataTypes } = Sequelize
 const Cabang = db.define('Cabang', {
   uuid: {
     type: DataTypes.UUID,
@@ -18,7 +19,7 @@ const Cabang = db.define('Cabang', {
   },
   koordinat: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
 }, {
   timestamps: true,
@@ -26,3 +27,5 @@ const Cabang = db.define('Cabang', {
 });
 
 module.exports = Cabang;
+
+// Cabang.hasMany(User, { foreignKey: 'cabangId' });

@@ -91,7 +91,9 @@ app.use(laporan)
 app.use(uploadRoutes)
 
 app.get('/', (req, res) => {
-    res.send('berhasil');
+    res.json({
+        message: "Pos Api v1 - Grebeg Suro"
+    }, 200);
 });
 
 store.sync();
