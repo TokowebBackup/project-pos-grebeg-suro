@@ -17,9 +17,12 @@ import useSWR from 'swr';
 ChartJS.register(CategoryScale, LinearScale, ArcElement, BarElement, Tooltip, Legend);
 
 const getApiBaseUrl = () => {
+  /*
   const protocol = window.location.protocol === "https:" ? "https" : "http";
   const baseUrl = process.env.REACT_APP_URL.replace(/^https?:\/\//, "");
   return `${protocol}://${baseUrl}`;
+  */
+  return process.env.REACT_APP_URL;
 };
 
 
@@ -41,7 +44,7 @@ export const Dashboard = () => {
     labels: [],
     datasets: [],
   })
-  const { data, error, req } = useSWR(`${getApiBaseUrl()}/gettransaksi`, fetcher);
+  const { data, error, req } = useSWR(`${getApiBaseUrl()}/gettransaksi`, {withCredentials: true}, fetcher);
 
   useEffect(() => {
     if (data && Array.isArray(data.transaksi)) {

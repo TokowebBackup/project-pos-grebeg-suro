@@ -33,7 +33,7 @@ const getApiBaseUrl = () => {
   return `${protocol}://${baseUrl}`;
 };
 
-const fetcher = (url) => axios.get(url).then((res) => res.data.data);
+const fetcher = (url) => axios.get(url, { withCredentials: true }).then((res) => res.data);
 
 export default function UserList() {
   const { user } = useSelector((state) => state.auth);
@@ -61,6 +61,7 @@ export default function UserList() {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const cabangs = cabangList?.data || [];
 
   const handleOpenModal = (user = null) => {
     if (user) {
@@ -164,9 +165,14 @@ export default function UserList() {
     );
 
   // Filter users by search term
-  const filteredUsers = users.filter((u) =>
-    u.username.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredUsers = users.filter((u) =>
+  //   u.username.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
+  const filteredUsers = Array.isArray(users?.data)
+  ? users.data.filter((u) =>
+      u.username.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  : [];
 
   return (
     <Box
@@ -348,11 +354,15 @@ export default function UserList() {
               size="small"
             >
               <MenuItem value="">-- Select Cabang --</MenuItem>
-              {cabangList.map((cabang) => (
-                <MenuItem key={cabang.uuid} value={cabang.uuid}>
-                  {cabang.namacabang}
-                </MenuItem>
-              ))}
+              {cabangs.length === 0 ? (
+                <MenuItem disabled>Tidak ada cabang</MenuItem>
+              ) : (
+                cabangs.map((cabang) => (
+                  <MenuItem key={cabang.uuid} value={cabang.uuid}>
+                    {cabang.namacabang}
+                  </MenuItem>
+                ))
+              )}
             </TextField>
           )}
 

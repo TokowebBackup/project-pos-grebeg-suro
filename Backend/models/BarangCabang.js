@@ -26,7 +26,10 @@ const BarangCabang = db.define('BarangCabang', {
       key: 'uuid',
     }
   }
-}
+},
+  {
+    tableName: 'barang_cabang', // sesuaikan nama table di DB
+  }
 );
 
 // Relasi Many-to-Many antara Barang dan Cabang melalui model BarangCabang

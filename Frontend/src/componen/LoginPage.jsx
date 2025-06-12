@@ -20,9 +20,12 @@ import useSWR from 'swr';
 const MySwal = withReactContent(Swal);
 
 const getApiBaseUrl = () => {
+  /*
   const protocol = window.location.protocol === "https:" ? "https" : "http";
   const baseUrl = process.env.REACT_APP_URL.replace(/^https?:\/\//, "");
   return `${protocol}://${baseUrl}`;
+  */
+  return process.env.REACT_APP_URL;
 };
 
 const fetcher = url => axios.get(url).then(res => res.data);

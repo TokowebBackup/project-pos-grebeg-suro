@@ -241,8 +241,6 @@ exports.rekapHarianUser = async (req, res) => {
     const transaksi = await Transaksi.findAll({
       where: {
         useruuid: user.uuid,
-        customer_name,
-        customer_phone,
         tanggal: tanggal
       },
       include: [

@@ -27,7 +27,7 @@ const getApiBaseUrl = () => {
   return `${protocol}://${baseUrl}`;
 };
 
-const fetcher = (url) => axios.get(url).then((res) => res.data.data);
+const fetcher = (url) => axios.get(url, { withCredentials: true }).then((res) => res.data);
 
 export const SetProdukCabang = () => {
   const { data: branchProducts, mutate: mutateBranchProducts } = useSWR(
@@ -54,11 +54,15 @@ export const SetProdukCabang = () => {
   }, [isAdmin, userInfo]);
 
   const getAvailableProducts = () => {
-    if (!branchProducts || !selectedBranch) return products || [];
+    if (!products || !Array.isArray(products)) return [];
+
+    if (!branchProducts || !selectedBranch || !Array.isArray(branchProducts)) return products;
+
     const existingProductIds = branchProducts
       .filter((item) => item.cabanguuid === selectedBranch)
       .map((item) => item.baranguuid);
-    return products?.filter((product) => !existingProductIds.includes(product.uuid)) || [];
+
+    return products.filter((product) => !existingProductIds.includes(product.uuid));
   };
   
   const handleAddProduct = async () => {

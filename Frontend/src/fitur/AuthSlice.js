@@ -1,15 +1,16 @@
-import {createSlice, createAsyncThunk} from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from 'axios';
 
 const getApiBaseUrl = () => {
-    const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
-    const baseUrl = process.env.REACT_APP_URL.replace(/^https?:\/\//, '');
-    return `${protocol}://${baseUrl}`;
+    // const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
+    // const baseUrl = process.env.REACT_APP_URL.replace(/^https?:\/\//, '');
+    // return `${protocol}://${baseUrl}`;
+    return process.env.REACT_APP_URL;
 };
 
-const initialState = {  
-   // user: null,
-   user: null,
+const initialState = {
+    // user: null,
+    user: null,
     isError: false,
     isSuccess: false,
     isLoading: false,
@@ -29,7 +30,8 @@ export const Login = createAsyncThunk("user/login", async (user, thunkAPI) => {
                 'Content-Type': 'application/x-www-form-urlencoded',
             }
         });
-     //   console.log("Login response:", response.data);
+        console.log("Login response:", response.data);
+        localStorage.setItem("token", response.data.token);
         return response.data;
     } catch (error) {
         if (error.response) {
@@ -40,25 +42,30 @@ export const Login = createAsyncThunk("user/login", async (user, thunkAPI) => {
     }
 });
 
-export const Me = createAsyncThunk("user/me", async(__, thunkAPI) => {
+export const Me = createAsyncThunk("user/me", async (__, thunkAPI) => {
     try {
-        const response = await axios.get(`${getApiBaseUrl()}/me`,
-    {withCredentials: true}
-    );console.log('Response /me:', response.data);
-    return response.data;
+        const baseUrl = getApiBaseUrl();
+        console.log('Calling /me with baseUrl:', baseUrl);
+        const response = await axios.get(`${baseUrl}/me`, {
+            withCredentials: true
+        });
+        console.log('Response /me:', response.data);
+        return response.data;
     } catch (error) {
         if (error.response) {
             const message = error.response.data.msg;
             return thunkAPI.rejectWithValue(message);
-        };
+        }
     }
 });
 
-export const Logout = createAsyncThunk("user/logout", async() => {
-await axios.delete(`${getApiBaseUrl()}/logout`);
- });
+export const Logout = createAsyncThunk("user/logout", async () => {
+    await axios.delete(`${getApiBaseUrl()}/logout`, {
+        withCredentials: true
+    });
+});
 
- export const authSlice = createSlice({
+export const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
@@ -69,14 +76,14 @@ await axios.delete(`${getApiBaseUrl()}/logout`);
             state.isLoading = true;
         });
         builder.addCase(Login.fulfilled, (state, action) => {
-          //  console.log('Data login:', action.payload);
+            //  console.log('Data login:', action.payload);
             state.isLoading = false;
             state.isSuccess = true;
             state.user = action.payload;
             state.isAuthenticated = true;
         });
         builder.addCase(Login.rejected, (state, action) => {
-          //  console.log("Rejected action payload:", action.payload);
+            //  console.log("Rejected action payload:", action.payload);
             state.isLoading = false;
             state.isError = true;
             state.message = action.payload;
@@ -86,7 +93,7 @@ await axios.delete(`${getApiBaseUrl()}/logout`);
             state.isLoading = true;
         });
         builder.addCase(Me.fulfilled, (state, action) => {
-           // console.log('Data pengguna dari API /me:', action.payload);
+            // console.log('Data pengguna dari API /me:', action.payload);
             state.isLoading = false;
             state.isSuccess = true;
             state.user = action.payload;
@@ -106,6 +113,6 @@ await axios.delete(`${getApiBaseUrl()}/logout`);
 });
 
 
-export const{ reset } = authSlice.actions;
+export const { reset } = authSlice.actions;
 export default authSlice.reducer;
 

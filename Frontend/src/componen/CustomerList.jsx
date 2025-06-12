@@ -26,7 +26,7 @@ const getApiBaseUrl = () => {
   return `${protocol}://${baseUrl}`;
 };
 
-const fetcher = (url) => axios.get(url).then((res) => res.data.data);
+const fetcher = (url) => axios.get(url, { withCredentials: true }).then((res) => res.data);
 
 function descendingComparator(a, b, orderBy) {
   if (!a[orderBy]) return 1;
@@ -53,10 +53,12 @@ function stableSort(array, comparator) {
 }
 
 export default function CustomerList() {
-  const { data: customers, error } = useSWR(
-    `${getApiBaseUrl()}/customers`,
-    fetcher
-  );
+  const { data, error } = useSWR(
+  `${getApiBaseUrl()}/customers`,
+  fetcher
+);
+
+const customers = data?.data || [];
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -69,15 +71,9 @@ export default function CustomerList() {
     if (!searchTerm) return customers;
     return customers?.filter(
       (cust) =>
-        cust.customer_name
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        cust.customer_phone
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        cust.User?.Cabang?.namacabang
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase())
+        cust.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cust.customer_phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cust.User?.Cabang?.namacabang?.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [customers, searchTerm]);
 

@@ -19,7 +19,7 @@ exports.getBarangCabangByRole = async (req, res) => {
         }
 
         let response;
-        
+
         // If superadmin, get all products from all branches
         if (user.role === 'superadmin') {
             response = await BarangCabang.findAll({
@@ -41,7 +41,7 @@ exports.getBarangCabangByRole = async (req, res) => {
                     },
                 ],
             });
-        } 
+        }
         // If admin, only get products from their branch
         else if (user.role === 'admin') {
             response = await BarangCabang.findAll({
@@ -102,7 +102,7 @@ exports.getCabangByRole = async (req, res) => {
             response = await Cabang.findAll({
                 attributes: ['uuid', 'namacabang']
             });
-        } 
+        }
         // Admin can only see their branch
         else if (user.role === 'admin') {
             response = await Cabang.findOne({
@@ -133,43 +133,43 @@ exports.getCabangByRole = async (req, res) => {
 };
 exports.getBarangCabangAdmin = async (req, res) => {
     try {
-      const response = await BarangCabang.findAll({
-        attributes: ["baranguuid", "cabanguuid"],
-        include: [
-          {
-            model: Barang,
-            attributes: ["uuid", "namabarang", "harga", "foto", "kategoriuuid"],
+        const response = await BarangCabang.findAll({
+            attributes: ["baranguuid", "cabanguuid"],
             include: [
-              {
-                model: Kategori,
-                attributes: ["uuid", "namakategori"],
-              },
+                {
+                    model: Barang,
+                    attributes: ["uuid", "namabarang", "harga", "foto", "kategoriuuid"],
+                    include: [
+                        {
+                            model: Kategori,
+                            attributes: ["uuid", "namakategori"],
+                        },
+                    ],
+                },
+                {
+                    model: Cabang,
+                    attributes: ["uuid", "namacabang"],
+                },
             ],
-          },
-          {
-            model: Cabang,
-            attributes: ["uuid", "namacabang"],
-          },
-        ],
-      });
-  
-      res.status(200).json({
-        status: true,
-        message: "Berhasil mendapatkan data barang cabang",
-        data: response,
-      });
-    } catch (error) {
-      res.status(500).json({
-        status: false,
-        message: error.message,
-      });
-    }
-  };
+        });
 
-  
-exports.getBarangCabang = async(req, res) => {
+        res.status(200).json({
+            status: true,
+            message: "Berhasil mendapatkan data barang cabang",
+            data: response,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: error.message,
+        });
+    }
+};
+
+
+exports.getBarangCabang = async (req, res) => {
     try {
-        const user = req.user; 
+        const user = req.user;
 
         if (!user) {
             return res.status(401).json({
@@ -180,7 +180,7 @@ exports.getBarangCabang = async(req, res) => {
 
         const response = await BarangCabang.findAll({
             where: {
-                cabanguuid: user.cabanguuid 
+                cabanguuid: user.cabanguuid
             },
             attributes: ['baranguuid', 'cabanguuid'],
             include: [
@@ -214,7 +214,7 @@ exports.getBarangCabang = async(req, res) => {
 
 exports.addBarangToCabang = async (req, res) => {
     try {
-        const { baranguuid, cabanguuid } = req.body; 
+        const { baranguuid, cabanguuid } = req.body;
 
         const barang = await Barang.findOne({ where: { uuid: baranguuid } });
         const cabang = await Cabang.findOne({ where: { uuid: cabanguuid } });
@@ -226,7 +226,7 @@ exports.addBarangToCabang = async (req, res) => {
             });
         }
 
-    
+
         const newBarangCabang = await BarangCabang.create({
             baranguuid,
             cabanguuid
@@ -285,12 +285,12 @@ exports.deleteBarangFromCabang = async (req, res) => {
         const { uuid } = req.params;
         const barangCabang = await BarangCabang.findOne({
             where: {
-                baranguuid: uuid 
+                baranguuid: uuid
             }
         });
         console.log('Params:', req.params);
         console.log('Body:', req.body);
-        
+
         if (!barangCabang) {
             return res.status(404).json({
                 status: false,
@@ -303,7 +303,7 @@ exports.deleteBarangFromCabang = async (req, res) => {
             status: true,
             message: 'Barang berhasil dihapus dari cabang'
         });
-        
+
     } catch (error) {
         res.status(500).json({
             status: false,
@@ -314,14 +314,14 @@ exports.deleteBarangFromCabang = async (req, res) => {
 
 
 
-exports.getBarang = async(req,res)=>{
+exports.getBarang = async (req, res) => {
     try {
         const response = await Barang.findAll({
-            attributes:['uuid','namabarang','harga','foto','kategoriuuid','createdAt'],
-            include: { 
+            attributes: ['uuid', 'namabarang', 'harga', 'foto', 'kategoriuuid', 'createdAt'],
+            include: {
                 model: Kategori,
-                attributes:['namakategori']
-                }
+                attributes: ['namakategori']
+            }
         })
         const calculateBarang = (BarangData) => BarangData.length;
         const totalBarang = calculateBarang(response);
@@ -331,25 +331,25 @@ exports.getBarang = async(req,res)=>{
             message: 'succes',
             data: response,
             total: totalBarang
-        })  
+        })
     } catch (error) {
         res.status(500).json(error.message)
     }
 }
 
-exports.getBarangByUuid = async(req,res) => {
+exports.getBarangByUuid = async (req, res) => {
     const { uuid } = req.params
     try {
         const response = await Barang.findOne({
             where: { uuid },
-            include: { 
-            model: Kategori,
-            attributes:['namakategori']
+            include: {
+                model: Kategori,
+                attributes: ['namakategori']
             }
         })
         res.status(200).json({
-            status:200,
-            message:'succes',
+            status: 200,
+            message: 'succes',
             data: response
         })
     } catch (error) {
@@ -364,7 +364,7 @@ exports.createBarang = async (req, res) => {
         }
 
         const { namabarang, harga, kategoriuuid } = req.body;
-        const file = req.files.file; 
+        const file = req.files.file;
         if (!file) {
             return res.status(400).json({ msg: "No File Uploaded" });
         }
@@ -403,7 +403,7 @@ exports.createBarang = async (req, res) => {
                 namabarang,
                 harga,
                 kategoriuuid,
-                foto: fileName, 
+                foto: fileName,
             });
 
             res.status(201).json({
@@ -420,9 +420,9 @@ exports.createBarang = async (req, res) => {
 
 exports.updateBarang = async (req, res) => {
     try {
-        const { uuid } = req.params; 
-        const { namabarang, harga, kategoriuuid } = req.body; 
-        const file = req.files ? req.files.file : null; 
+        const { uuid } = req.params;
+        const { namabarang, harga, kategoriuuid } = req.body;
+        const file = req.files ? req.files.file : null;
         const barang = await Barang.findOne({ where: { uuid } });
         if (!barang) {
             return res.status(404).json({ message: "Barang tidak ditemukan" });

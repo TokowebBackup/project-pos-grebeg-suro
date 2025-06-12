@@ -12,9 +12,12 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
 const getApiBaseUrl = () => {
+  /*
   const protocol = window.location.protocol === "https:" ? "https" : "http";
   const baseUrl = process.env.REACT_APP_URL.replace(/^https?:\/\//, "");
   return `${protocol}://${baseUrl}`;
+  */
+  return process.env.REACT_APP_URL;
 };
 
 export const ProfileKasir = ({ userUuid }) => {

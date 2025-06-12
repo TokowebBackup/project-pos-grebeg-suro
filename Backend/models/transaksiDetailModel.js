@@ -34,7 +34,10 @@ const TransaksiDetail = sequelize.define('TransaksiDetail', {
     allowNull: false,
   },
 }, {
-  timestamps: true
+  timestamps: true,
+  timestamps: true,
+  tableName: 'transaksidetails',   // 👈 PENTING
+  freezeTableName: true
 });
 
 // Relasi dengan Transaksi

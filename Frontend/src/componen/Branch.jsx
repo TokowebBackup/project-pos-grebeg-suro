@@ -29,11 +29,11 @@ const getApiBaseUrl = () => {
   return `${protocol}://${baseUrl}`;
 };
 
-const fetcher = (url) => axios.get(url).then((res) => res.data.data);
+const fetcher = (url) => axios.get(url, { withCredentials: true }).then((res) => res.data);
 
 export const Branch = () => {
   const { data: cabangData, error: cabangError } = useSWR(`${getApiBaseUrl()}/cabang`, fetcher);
-  const cabang = cabangData || []; // Provide default empty array if data is undefined
+  const cabang = cabangData?.data || [];
 
   const [openModal, setOpenModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -135,11 +135,10 @@ export const Branch = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {cabang.map((branch) => (
+            {Array.isArray(cabang) && cabang.map((branch) => (
               <TableRow key={branch.uuid}>
                 <TableCell>{branch.namacabang}</TableCell>
                 <TableCell>{branch.alamat}</TableCell>
-                {/* <TableCell>{branch.koordinat}</TableCell> */}
                 <TableCell>
                   <Button
                     variant="outlined"

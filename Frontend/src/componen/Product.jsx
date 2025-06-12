@@ -29,12 +29,15 @@ const getApiBaseUrl = () => {
   return `${protocol}://${baseUrl}`;
 };
 
-const fetcher = (url) => axios.get(url).then((res) => res.data.data);
+const fetcher = (url) => axios.get(url, { withCredentials: true }).then((res) => res.data);
 
 export const Product = () => {
   const { user } = useSelector((state) => state.auth);
-  const { data: products, error: productError, mutate } = useSWR(`${getApiBaseUrl()}/barang`, fetcher);
-  const { data: categories, error: categoryError } = useSWR(`${getApiBaseUrl()}/kategori`, fetcher);
+  const { data: productResponse, error: productError, mutate } = useSWR(`${getApiBaseUrl()}/barang`, fetcher);
+  const { data: categoryResponse, error: categoryError } = useSWR(`${getApiBaseUrl()}/kategori`, fetcher);
+
+  const products = Array.isArray(productResponse?.data) ? productResponse.data : [];
+  const categories = Array.isArray(categoryResponse?.data) ? categoryResponse.data : [];
 
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({ namabarang: "", harga: "", kategoriuuid: "", file: null });

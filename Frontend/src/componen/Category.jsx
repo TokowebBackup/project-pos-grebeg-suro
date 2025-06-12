@@ -24,7 +24,13 @@ const getApiBaseUrl = () => {
   return `${protocol}://${baseUrl}`;
 };
 
-const fetcher = (url) => axios.get(url,{withCredentials: true}).then((res) => res.data.data);
+const fetcher = (url) => axios.get(url,{withCredentials: true}).then((res) => {
+if (res.data && Array.isArray(res.data.data)) {
+      return res.data.data;
+    } else {
+      return [];
+    }
+});
 
 export const Category = () => {
     const {data : categorys, error: CategoryError, mutate} = useSWR(`${getApiBaseUrl()}/kategori`,fetcher, {withCredentials: true});
@@ -105,19 +111,19 @@ export const Category = () => {
         </TableRow>
       </TableHead>
       <TableBody>
-        {categorys.map((kategori, index) => (
+         {Array.isArray(categorys) && categorys.map((kategori, index) => (
           <TableRow key={kategori.uuid}>
             <TableCell>{index + 1}</TableCell>
             <TableCell>{kategori.namakategori}</TableCell>
             {user?.role === 'superadmin' && (
-            <TableCell>
-              <Button size="small" color="primary" onClick={() => handleEdit(kategori)}>
-                Edit
-              </Button>
-              <Button size="small" color="secondary" onClick={() => handleDelete(kategori.uuid)}>
-                Delete
-              </Button>
-            </TableCell>
+              <TableCell>
+                <Button size="small" color="primary" onClick={() => handleEdit(kategori)}>
+                  Edit
+                </Button>
+                <Button size="small" color="error" onClick={() => handleDelete(kategori.uuid)}>
+                  Delete
+                </Button>
+              </TableCell>
             )}
           </TableRow>
         ))}

@@ -34,9 +34,12 @@ import Swal from "sweetalert2";
 import { useSelector } from 'react-redux';
 
 const getApiBaseUrl = () => {
+  /*
   const protocol = window.location.protocol === "https:" ? "https" : "http";
   const baseUrl = process.env.REACT_APP_URL.replace(/^https?:\/\//, "");
   return `${protocol}://${baseUrl}`;
+  */
+  return process.env.REACT_APP_URL;
 };
 
 const ProductGrid = () => {
