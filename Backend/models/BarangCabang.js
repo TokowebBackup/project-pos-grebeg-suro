@@ -14,7 +14,7 @@ const BarangCabang = db.define('BarangCabang', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'barangs', // Mengacu pada model Barang
+      model: 'barangs',
       key: 'uuid',
     }
   },
@@ -22,17 +22,14 @@ const BarangCabang = db.define('BarangCabang', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'cabangs', // Mengacu pada model Cabang
+      model: 'cabangs',
       key: 'uuid',
     }
   }
-},
-  {
-    tableName: 'barang_cabang', // sesuaikan nama table di DB
-  }
-);
+}, {
+  tableName: 'barangcabangs',
+});
 
-// Relasi Many-to-Many antara Barang dan Cabang melalui model BarangCabang
 Barang.belongsToMany(Cabang, { through: BarangCabang, foreignKey: 'baranguuid' });
 Cabang.belongsToMany(Barang, { through: BarangCabang, foreignKey: 'cabanguuid' });
 
