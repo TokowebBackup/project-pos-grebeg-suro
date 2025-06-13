@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 const db = require('../config/database.js')
 const Cabang = require('./cabangModel.js')
 
-const {DataTypes} = Sequelize
+const { DataTypes } = Sequelize
 
 const User = db.define('User', {
   uuid: {

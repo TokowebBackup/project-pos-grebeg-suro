@@ -27,7 +27,7 @@ const JurnalAkuntansi = db.define('JurnalAkuntansi', {
   //   type: DataTypes.UUID,
   //   allowNull: true,
   // },
-  baranguuid: { 
+  baranguuid: {
     type: DataTypes.UUID,
     allowNull: true,
     references: {
@@ -68,6 +68,7 @@ const JurnalAkuntansi = db.define('JurnalAkuntansi', {
   },
 }, {
   timestamps: true,
+  tableName: 'jurnalakuntansis'
 });
 
 // Relasi ke Cabang

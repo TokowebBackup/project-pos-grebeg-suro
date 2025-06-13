@@ -118,10 +118,10 @@ export const Branch = () => {
   return (
     <Box sx={{ padding: 2 }}>
       <Typography variant="h6" gutterBottom>
-        Manajemen Cabang
+        Manajemen Penjual
       </Typography>
       <Button variant="contained" color="primary" onClick={() => handleOpenModal()}>
-        Tambah Cabang
+        Tambah Penjual
       </Button>
       <TableContainer component={Paper} sx={{ marginTop: 2 }}>
         <Table>
@@ -166,11 +166,11 @@ export const Branch = () => {
       <Modal open={openModal} onClose={handleCloseModal}>
         <Card sx={{ padding: 4, maxWidth: 500, margin: "auto", marginTop: "10%" }}>
           <Typography variant="h6" gutterBottom>
-            {isEditing ? "Edit Cabang" : "Tambah Cabang"}
+            {isEditing ? "Edit Penjual" : "Tambah Penjual"}
           </Typography>
           <TextField
             name="namacabang"
-            label="Nama Cabang"
+            label="Nama Penjual"
             fullWidth
             margin="normal"
             value={currentCabang.namacabang}

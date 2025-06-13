@@ -16,7 +16,7 @@ import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
-import { TableContainer } from '@mui/material'
+import { TableContainer } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import dayjs from 'dayjs';
@@ -62,8 +62,8 @@ export const Transaction = ({ userRole }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
-
   const [filters, setFilters] = useState({ username: '', branch: '', date: '' });
+  const [searchQuery, setSearchQuery] = useState(''); // New state for search query
   const itemsPerPage = 10;
 
   if (error) return <div>Error loading transactions.</div>;
@@ -78,6 +78,7 @@ export const Transaction = ({ userRole }) => {
   const transactions = [...(data.transaksi || [])].sort((a, b) =>
     new Date(b.createdAt) - new Date(a.createdAt)
   );
+
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesUsername = filters.username
       ? transaction.User?.username?.toLowerCase().includes(filters.username.toLowerCase())
@@ -88,8 +89,12 @@ export const Transaction = ({ userRole }) => {
     const matchesDate = filters.date
       ? dayjs(transaction.tanggal).isSame(filters.date, 'day')
       : true;
+    const matchesSearchQuery = searchQuery
+      ? transaction.uuid.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      transaction.User?.username?.toLowerCase().includes(searchQuery.toLowerCase())
+      : true;
 
-    return matchesUsername && matchesBranch && matchesDate;
+    return matchesUsername && matchesBranch && matchesDate && matchesSearchQuery;
   });
 
   const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
@@ -112,6 +117,11 @@ export const Transaction = ({ userRole }) => {
     const { name, value } = e.target;
     setFilters({ ...filters, [name]: value });
   };
+
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value); // Update search query state
+  };
+
   const updateTransaction = async (transactionId, updatedData) => {
     try {
       const response = await axios.put(`${getApiBaseUrl()}/updatetransaksi/${transactionId}`, updatedData, {
@@ -135,6 +145,7 @@ export const Transaction = ({ userRole }) => {
       throw error;
     }
   };
+
   const handleEditClick = (transaction) => {
     setSelectedTransaction(null);
     setModalOpen(false);
@@ -156,6 +167,7 @@ export const Transaction = ({ userRole }) => {
       alert("Failed to update transaction.");
     }
   };
+
   const handleDeleteTransaction = async (transactionId) => {
     const confirmDelete = window.confirm("Are you sure you want to delete this transaction?");
     if (confirmDelete) {
@@ -167,6 +179,7 @@ export const Transaction = ({ userRole }) => {
       }
     }
   };
+
   const handleRowClick = (event, transaction) => {
     // Prevent row click if clicking on the action buttons
     if (event.target.closest('button')) {
@@ -187,6 +200,12 @@ export const Transaction = ({ userRole }) => {
 
         {/* Filter Inputs */}
         <Box sx={{ display: 'flex', gap: 2, padding: 2 }}>
+          <TextField
+            label="Search"
+            value={searchQuery}
+            onChange={handleSearchChange} // Handle search input change
+            size="small"
+          />
           <TextField
             label="Username"
             name="username"
@@ -237,6 +256,9 @@ export const Transaction = ({ userRole }) => {
               {paginatedTransactions.map((transaction, index) => {
                 const statusConfig = statusMap[transaction.status_pembayaran] || { label: 'Unknown', color: 'default' };
 
+                // Calculate the actual row number based on the current page
+                const rowNumber = (currentPage - 1) * itemsPerPage + index + 1;
+
                 return (
                   <TableRow
                     hover
@@ -244,7 +266,7 @@ export const Transaction = ({ userRole }) => {
                     onClick={(e) => handleRowClick(e, transaction)}
                     sx={{ cursor: 'pointer' }}
                   >
-                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{rowNumber}</TableCell> {/* Use the calculated row number */}
                     <TableCell>{transaction.uuid}</TableCell>
                     <TableCell>{dayjs(transaction.tanggal).format('DD MMM YYYY')}</TableCell>
                     <TableCell>
@@ -295,6 +317,7 @@ export const Transaction = ({ userRole }) => {
                 );
               })}
             </TableBody>
+
           </Table>
         </Box>
 

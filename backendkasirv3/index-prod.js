@@ -35,10 +35,11 @@ setupAssociations();
 const app = express()
 
 const SESS_SECRET = "qwertysaqdunasndjwnqnkndklawkdwk";
-
+const isProduction = process.env.NODE_ENV === 'production';
 const store = new SequelizeStore({
     db: db
 });
+
 
 // (async() => {
 //    await db.sync();
@@ -88,7 +89,7 @@ app.use(session({
     saveUninitialized: true,
     store: store,
     cookie: {
-        secure: isProduction,    // true hanya kalau production / HTTPS
+        secure: isProduction,
         httpOnly: true,
         sameSite: isProduction ? 'None' : 'Lax',
         domain: isProduction ? '.grebegsuro.id' : undefined,
@@ -125,7 +126,7 @@ app.get('/', (req, res) => {
     res.send('berhasil');
 });
 
-// store.sync();
+store.sync();
 
 const port = 5000
 

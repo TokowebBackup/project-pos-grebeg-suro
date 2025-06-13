@@ -35,7 +35,7 @@ const distribusiStok = db.define('distribusiStok', {
   },
 }, {
   timestamps: true,
- // tableName: 'distribusi_stoks',
+  tableName: 'distribusistoks',
 });
 
 distribusiStok.belongsTo(Barang, { foreignKey: 'baranguuid' });

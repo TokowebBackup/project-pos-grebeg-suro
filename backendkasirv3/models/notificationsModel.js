@@ -3,7 +3,7 @@ const db = require('../config/database')
 const Cabang = require('./cabangModel.js');
 const Transaksi = require('./transaksiModel');
 
-const Notification = db.define('Notification',{
+const Notification = db.define('Notification', {
     id: {
         type: DataTypes.UUID,
         defaultValue: DataTypes.UUIDV4,
@@ -33,7 +33,11 @@ const Notification = db.define('Notification',{
         type: DataTypes.BOOLEAN,
         defaultValue: false
     }
-})
+},
+    {
+        timestamps: true,
+        tableName: 'notifications',
+    })
 
 Notification.belongsTo(Transaksi, { foreignKey: 'transaksiUuid' });
 Transaksi.hasOne(Notification, { foreignKey: 'transaksiUuid' });

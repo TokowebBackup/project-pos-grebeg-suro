@@ -10,7 +10,7 @@ const TransaksiDetail = sequelize.define('TransaksiDetail', {
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
   },
-  transaksiuuid: { 
+  transaksiuuid: {
     type: DataTypes.UUID,
     allowNull: false,
     field: 'transaksiuuid',
@@ -39,7 +39,8 @@ const TransaksiDetail = sequelize.define('TransaksiDetail', {
     allowNull: false,
   },
 }, {
-  timestamps: true
+  timestamps: true,
+  tableName: 'transaksidetails'
 });
 
 // Relasi dengan Transaksi

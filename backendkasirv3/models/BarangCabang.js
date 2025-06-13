@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 const db = require('../config/database.js');
-const Barang = require('./barangModel.js'); 
-const Cabang = require('./cabangModel.js'); 
+const Barang = require('./barangModel.js');
+const Cabang = require('./cabangModel.js');
 const { DataTypes } = Sequelize;
 
 const BarangCabang = db.define('BarangCabang', {
@@ -14,7 +14,7 @@ const BarangCabang = db.define('BarangCabang', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'barangs', 
+      model: 'barangs',
       key: 'uuid',
     }
   },
@@ -22,17 +22,17 @@ const BarangCabang = db.define('BarangCabang', {
     type: DataTypes.UUID,
     allowNull: false,
     references: {
-      model: 'cabangs', 
+      model: 'cabangs',
       key: 'uuid',
     }
   },
   stok: {
     type: DataTypes.INTEGER,
-    defaultValue: 0,  
+    defaultValue: 0,
   }
 }, {
   timestamps: true,
-  //tableName: 'barang_cabangs',
+  tableName: 'barangcabangs',
 });
 
 

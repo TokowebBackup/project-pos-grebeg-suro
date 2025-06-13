@@ -161,29 +161,29 @@ exports.updateDistribusi = async (req, res) => {
     }
 
     if (distribusi.status === 'diterima' || distribusi.status === 'cancel') {
-      return res.status(400).json({ 
-        status: false, 
-        message: `Distribusi stok sudah berstatus ${distribusi.status} dan tidak dapat diubah lagi` 
+      return res.status(400).json({
+        status: false,
+        message: `Distribusi stok sudah berstatus ${distribusi.status} dan tidak dapat diubah lagi`
       });
     }
 
     if (status === 'diterima') {
-      const wearhouse = await Wearhouse.findOne({ 
-        where: { baranguuid: distribusi.baranguuid }, 
-        transaction: t 
+      const wearhouse = await Wearhouse.findOne({
+        where: { baranguuid: distribusi.baranguuid },
+        transaction: t
       });
-      
+
       if (!wearhouse || wearhouse.stok_gudang < distribusi.jumlah) {
-        return res.status(400).json({ 
-          status: false, 
-          message: "Stok di gudang tidak mencukupi untuk distribusi ini" 
+        return res.status(400).json({
+          status: false,
+          message: "Stok di gudang tidak mencukupi untuk distribusi ini"
         });
       }
       wearhouse.stok_gudang -= distribusi.jumlah;
       await wearhouse.save({ transaction: t });
       await mutasiStok.create({
         baranguuid: distribusi.baranguuid,
-        cabanguuid: null, 
+        cabanguuid: null,
         jenis_mutasi: 'keluar',
         jumlah: distribusi.jumlah,
         keterangan: `Distribusi stok ke cabang (ID: ${distribusi.uuid})`
@@ -211,7 +211,7 @@ exports.updateDistribusi = async (req, res) => {
         keterangan: `Distribusi stok dari gudang (ID: ${distribusi.uuid})`
       }, { transaction: t });
     }
-    
+
     if (status === 'cancel') {
     }
     distribusi.status = status;
