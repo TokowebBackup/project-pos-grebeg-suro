@@ -1,0 +1,30 @@
+require('dotenv').config();
+const midtransClient = require("midtrans-client");
+
+
+const snap = new midtransClient.Snap({
+  isProduction: true, // Ubah ke true jika production
+
+  //testing key
+  // serverKey: process.env.SERVERKEY,
+  // clientKey: process.env.CLIENTKEY,
+  //prod
+  serverKey: process.env.SERVERKEYPROD,
+  clientKey: process.env.CLIENTKEYPROD
+
+});
+console.log("Ini Server Key:", process.env.SERVERKEY);
+console.log("Ini Client Key:", process.env.CLIENTKEY);
+
+
+const coreApi = new midtransClient.CoreApi({
+  isProduction: true,
+  // serverKey: process.env.SERVERKEY,
+  // clientKey: process.env.CLIENTKEY,
+  //prod
+  serverKey: process.env.SERVERKEYPROD,
+  clientKey: process.env.CLIENTKEYPROD
+});
+
+
+module.exports = { snap, coreApi }

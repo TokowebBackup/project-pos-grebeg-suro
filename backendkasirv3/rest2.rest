@@ -1,0 +1,103 @@
+###
+post https://apikasirv2.brabsen.my.id/login
+Content-Type: application/json
+
+{
+    "username": "superadmin",
+    "password": "12345"
+}
+
+###
+post http://localhost:5000/login
+Content-Type: application/json
+
+{
+    "username": "superadmin",
+    "password": "12345"
+}
+
+
+###
+post http://localhost:5000/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "12345"
+}
+
+###
+post http://localhost:5000/createwearhouse
+Content-Type: application/json
+
+{
+    "baranguuid": "08d4c3df-09d3-46a2-b841-80d825309151",
+    "stok_gudang": "8"
+}
+
+###
+post http://localhost:5000/createdistribusistok
+Content-Type: application/json
+
+{
+    "cabanguuid": "bb88b401-f02f-4ff9-8b7b-68826173eef7",
+    "baranguuid": "08d4c3df-09d3-46a2-b841-80d825309151",
+    "jumlah": "100"
+}
+
+###
+PUT http://localhost:5000/updatedistribusistok/809efbf9-31ec-4b3e-9479-0f0b3d60c8a1
+Content-Type: application/json
+
+{
+    "status": "diterima"
+}
+
+//acc cabang bb88b401-f02f-4ff9-8b7b-68826173eef7
+
+###
+PUT http://localhost:5000/updatedistribusistok/10119648-c455-4d38-9171-d949c246949f
+Content-Type: application/json
+
+{
+    "status": "diterima"
+}
+###
+get http://localhost:5000/getmutasi?startDate=2025-02-01&endDate=2025-02-20
+
+###
+get http://localhost:5000/getmutasitracking
+
+###
+get http://localhost:5000/getdatawearhouse
+
+###
+get http://localhost:5000/cekstock
+
+###
+get http://localhost:5000/rekap
+
+###
+get http://localhost:5000/komprehensif?startDate=2025-01-01&endDate=2025-2-28
+
+###
+get http://localhost:5000/stok-per-cabang
+
+###
+get http://localhost:5000/penjualan-per-kategori?startDate=2025-01-01&endDate=2025-2-28
+
+###
+get http://localhost:5000/getsaldodandebit?bulan=03&tahun=2025
+
+###
+get https://apikasirv2.brabsen.my.id/getsaldodandebit?startDate=2025-01-01&endDate=2025-03-01
+
+
+###
+get https://apikasirv2.brabsen.my.id/getjurnal?start_date=2025-02-01&end_date=2025-03-28
+
+###
+get https://apikasirv2.brabsen.my.id/gettransaksi
+
+###
+get http://localhost:5000/saldoterkini

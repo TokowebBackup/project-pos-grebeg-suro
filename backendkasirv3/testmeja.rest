@@ -1,0 +1,106 @@
+###
+post https://apikasirv2.brabsen.my.id/login
+Content-Type: application/json
+
+{
+    "username": "superadmin",
+    "password": "12345"
+}
+
+###
+post http://localhost:5000/login
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "12345"
+}
+
+###
+post http://localhost:5000/createmeja
+Content-Type: application/json
+
+{
+    "name": "Meja 1",
+    "cabangUuid": "bb88b401-f02f-4ff9-8b7b-68826173eef7"
+}
+
+###
+post http://localhost:5000/createtransaksimejacabang
+Content-Type: application/json
+
+{
+    "pembayaran": "qris",
+    "tableId": 1,
+    "cabangUuid": "bb88b401-f02f-4ff9-8b7b-68826173eef7",
+    "userName": "JohnDoe",
+    "email": "johndoe@example.com",
+    "items": [
+        {
+            "baranguuid": "1e21048d-81f9-4601-b48e-ea9f9dde09bf",
+            "jumlahbarang": 1
+        }
+        
+    ]
+}
+
+###
+post http://192.168.100.18:5000/acceptorder
+Content-Type: application/json
+//menggunakan uuid transaksi di lakukan setelah kasir read transaksi
+
+{
+    "transaksiUuid": "7c5953c1-9d5f-4294-a26c-427572033421"
+}
+
+###
+get http://192.168.100.18:5000/notifications
+
+###
+post http://localhost:5000/notifications/read
+Content-Type: application/json
+
+//menggunakan uuid notifikasi
+{
+  "notificationIds": [
+    "48eb11fb-5135-411b-8516-6eec316d68c9"
+
+  ]
+}
+
+###
+get http://localhost:5000/table/qr/1
+
+###
+get http://localhost:5000/tableproduk/bb88b401-f02f-4ff9-8b7b-68826173eef7/1
+
+###
+get http://localhost:5000/poll
+
+###
+get http://localhost:5000/getdetails?page=1&limit=10
+
+
+###
+get http://localhost:5000/getdetails/6b2bcbff-ede5-4bb2-b73d-f114b75daad7
+
+###
+get http://192.168.100.18:5000/getdetails/6b2bcbff-ede5-4bb2-b73d-f114b75daad7
+
+###
+get http://192.168.1.7:5000/status/TABLE-1-1742463890062-Cuostumer: Bimo Wahyu
+
+###
+get http://localhost:5000/getsaldotransaksi?startDate=2025-03-01&endDate=2025-03-22&page=1&limit=10
+
+###
+post http://localhost:5000/createcekjurnal
+Content-Type: application/json 
+
+{
+  "tanggal": "2025-03-22",
+  "keterangan": "Penjualan harian"
+}
+
+###
+post http://192.168.100.18:5000/kurangi-stok-transaksi/5d9e31e5-89e2-4c79-9e46-5b2739032243
