@@ -164,6 +164,15 @@ pos-grebeg-suro/
     └── package.json  # Dependencies frontend
 ```  
 
+### First remove all table if exists table is error  
+```
+SELECT CONCAT('DROP TABLE IF EXISTS `', table_name, '`;') 
+FROM information_schema.tables 
+WHERE table_schema = 'databasekamu';
+
+mysql -u grebeg_suro -p databasekasirbaru < /home/hallaw/databasekasirbaru.sql
+```
+
 ## Lisensi
 
 #### Developed By [Tokoweb.co](https://tokoweb.co)

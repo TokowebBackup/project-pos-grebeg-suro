@@ -34,7 +34,7 @@ export const Sidebar = () => {
         left: 0,
         p: 2,
         zIndex: 1200,
-        
+
       }}
     >
       {/* Logo Section */}
@@ -55,162 +55,162 @@ export const Sidebar = () => {
 
       {/* Navigation Links */}
       <Stack spacing={2} sx={{ flex: 1 }}>
-      <Typography
-            component={NavLink}
-            to="/dashboard"
-            sx={{
-                textDecoration: 'none',
-                color: '#cbd5e1',
-                p: 1,
-                borderRadius: 1,
-                '&:hover': { bgcolor: '#374151', color: 'white' },
-                '&.active': { bgcolor: '#374151', color: 'white' }, 
-            }}
-            >
-            Dashboard
-            </Typography>
+        <Typography
+          component={NavLink}
+          to="/dashboard"
+          sx={{
+            textDecoration: 'none',
+            color: '#cbd5e1',
+            p: 1,
+            borderRadius: 1,
+            '&:hover': { bgcolor: '#374151', color: 'white' },
+            '&.active': { bgcolor: '#374151', color: 'white' },
+          }}
+        >
+          Dashboard
+        </Typography>
 
         <Typography
-            component={NavLink}
-            to="/userlist"
-            sx={{
-                textDecoration: 'none',
-                color: '#cbd5e1',
-                p: 1,
-                borderRadius: 1,
-                '&:hover': { bgcolor: '#374151', color: 'white' },
-                '&.active': { bgcolor: '#374151', color: 'white' }, 
-            }}
-            >
-            User List
-            </Typography>
-            <Typography
-            component={NavLink}
-            to="/customerlist"
-            sx={{
-                textDecoration: 'none',
-                color: '#cbd5e1',
-                p: 1,
-                borderRadius: 1,
-                '&:hover': { bgcolor: '#374151', color: 'white' },
-                '&.active': { bgcolor: '#374151', color: 'white' }, 
-            }}
-            >
-            Customer List
-            </Typography>
-            <Typography
-            component={NavLink}
-            to="/transaction"
-            sx={{
-                textDecoration: 'none',
-                color: '#cbd5e1',
-                p: 1,
-                borderRadius: 1,
-                '&:hover': { bgcolor: '#374151', color: 'white' },
-                '&.active': { bgcolor: '#374151', color: 'white' }, 
-            }}
-            >
-            Transaction
-            </Typography>
+          component={NavLink}
+          to="/userlist"
+          sx={{
+            textDecoration: 'none',
+            color: '#cbd5e1',
+            p: 1,
+            borderRadius: 1,
+            '&:hover': { bgcolor: '#374151', color: 'white' },
+            '&.active': { bgcolor: '#374151', color: 'white' },
+          }}
+        >
+          User List
+        </Typography>
+        <Typography
+          component={NavLink}
+          to="/customerlist"
+          sx={{
+            textDecoration: 'none',
+            color: '#cbd5e1',
+            p: 1,
+            borderRadius: 1,
+            '&:hover': { bgcolor: '#374151', color: 'white' },
+            '&.active': { bgcolor: '#374151', color: 'white' },
+          }}
+        >
+          Customer List
+        </Typography>
+        <Typography
+          component={NavLink}
+          to="/transaction"
+          sx={{
+            textDecoration: 'none',
+            color: '#cbd5e1',
+            p: 1,
+            borderRadius: 1,
+            '&:hover': { bgcolor: '#374151', color: 'white' },
+            '&.active': { bgcolor: '#374151', color: 'white' },
+          }}
+        >
+          Transaction
+        </Typography>
 
-            <Typography
-            component={NavLink}
-            to="/product"
-            sx={{
-                textDecoration: 'none',
-                color: '#cbd5e1',
-                p: 1,
-                borderRadius: 1,
-                '&:hover': { bgcolor: '#374151', color: 'white' },
-                '&.active': { bgcolor: '#374151', color: 'white' }, 
-            }}
-            >
-            Product
-            </Typography>
-            <Typography
-            component={NavLink}
-            to="/category"
-            sx={{
-                textDecoration: 'none',
-                color: '#cbd5e1',
-                p: 1,
-                borderRadius: 1,
-                '&:hover': { bgcolor: '#374151', color: 'white' },
-                '&.active': { bgcolor: '#374151', color: 'white' }, 
-            }}
-            >
-            Category
-            </Typography>
-            <Typography
-            component={NavLink}
-            to="/setprodukpercabang"
-            sx={{
-                textDecoration: 'none',
-                color: '#cbd5e1',
-                p: 1,
-                borderRadius: 1,
-                '&:hover': { bgcolor: '#374151', color: 'white' },
-                '&.active': { bgcolor: '#374151', color: 'white' }, 
-            }}
-            >Set Produk
-              </Typography>
-              {user && user.role === "superadmin" && (
-            <Typography
+        <Typography
+          component={NavLink}
+          to="/product"
+          sx={{
+            textDecoration: 'none',
+            color: '#cbd5e1',
+            p: 1,
+            borderRadius: 1,
+            '&:hover': { bgcolor: '#374151', color: 'white' },
+            '&.active': { bgcolor: '#374151', color: 'white' },
+          }}
+        >
+          Product
+        </Typography>
+        <Typography
+          component={NavLink}
+          to="/category"
+          sx={{
+            textDecoration: 'none',
+            color: '#cbd5e1',
+            p: 1,
+            borderRadius: 1,
+            '&:hover': { bgcolor: '#374151', color: 'white' },
+            '&.active': { bgcolor: '#374151', color: 'white' },
+          }}
+        >
+          Category
+        </Typography>
+        <Typography
+          component={NavLink}
+          to="/setprodukpercabang"
+          sx={{
+            textDecoration: 'none',
+            color: '#cbd5e1',
+            p: 1,
+            borderRadius: 1,
+            '&:hover': { bgcolor: '#374151', color: 'white' },
+            '&.active': { bgcolor: '#374151', color: 'white' },
+          }}
+        >Set Produk
+        </Typography>
+        {user && user.role === "superadmin" && (
+          <Typography
             component={NavLink}
             to="/branch"
             sx={{
-                textDecoration: 'none',
-                color: '#cbd5e1',
-                p: 1,
-                borderRadius: 1,
-                '&:hover': { bgcolor: '#374151', color: 'white' },
-                '&.active': { bgcolor: '#374151', color: 'white' }, 
+              textDecoration: 'none',
+              color: '#cbd5e1',
+              p: 1,
+              borderRadius: 1,
+              '&:hover': { bgcolor: '#374151', color: 'white' },
+              '&.active': { bgcolor: '#374151', color: 'white' },
             }}
-            >
+          >
             Branch
-            </Typography>
-            )}
+          </Typography>
+        )}
 
 
-            <Typography
-            component={NavLink}
-            to="/laporan"
-            sx={{
-                textDecoration: 'none',
-                color: '#cbd5e1',
-                p: 1,
-                borderRadius: 1,
-                '&:hover': { bgcolor: '#374151', color: 'white' },
-                '&.active': { bgcolor: '#374151', color: 'white' }, 
-            }}
-            >
-            Invoice
-            </Typography>
+        <Typography
+          component={NavLink}
+          to="/laporan"
+          sx={{
+            textDecoration: 'none',
+            color: '#cbd5e1',
+            p: 1,
+            borderRadius: 1,
+            '&:hover': { bgcolor: '#374151', color: 'white' },
+            '&.active': { bgcolor: '#374151', color: 'white' },
+          }}
+        >
+          Invoice
+        </Typography>
 
-            <Typography
-            component={NavLink}
-            onClick={logout}
+        <Typography
+          component={NavLink}
+          onClick={logout}
 
-            to="/"
-            sx={{
-                textDecoration: 'none',
-                color: '#cbd5e1',
-                p: 1,
-                borderRadius: 1,
-                '&:hover': { bgcolor: '#374151', color: 'white' },
-                '&.active': { bgcolor: '#374151', color: 'white' }, 
-            }}
-            >
-            <LogoutOutlined /> Log Out
-           
-            </Typography>
+          to="/"
+          sx={{
+            textDecoration: 'none',
+            color: '#cbd5e1',
+            p: 1,
+            borderRadius: 1,
+            '&:hover': { bgcolor: '#374151', color: 'white' },
+            '&.active': { bgcolor: '#374151', color: 'white' },
+          }}
+        >
+          <LogoutOutlined /> Log Out
+
+        </Typography>
       </Stack>
 
       {/* Divider */}
       <Divider sx={{ bgcolor: '#374151', my: 2 }} />
 
       {/* Footer Section */}
-      
+
     </Box>
   );
 };

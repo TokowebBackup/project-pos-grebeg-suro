@@ -25,6 +25,10 @@ const Transaksi = sequelize.define('Transaksi', {
     type: DataTypes.STRING,
     allowNull: true
   },
+  customer_email: {
+    type: DataTypes.STRING,
+    allowNull: true
+  },
   totaljual: {
     type: DataTypes.DECIMAL(10, 2),
     allowNull: false,

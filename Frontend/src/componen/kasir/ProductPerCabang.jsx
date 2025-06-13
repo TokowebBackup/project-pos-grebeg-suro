@@ -4,24 +4,24 @@ import QRCode from "qrcode";
 import './Header.css'
 import {
   Box,
-  Grid, 
-  Card, 
-  CardContent, 
-  CardMedia, 
-  Typography, 
-  Button, 
-  CircularProgress, 
-  Alert, 
-  List, 
-  ListItem, 
-  ListItemText, 
-  Select, 
-  MenuItem, 
-  FormControl, 
-  InputLabel, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
+  Grid,
+  Card,
+  CardContent,
+  CardMedia,
+  Typography,
+  Button,
+  CircularProgress,
+  Alert,
+  List,
+  ListItem,
+  ListItemText,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
   DialogActions,
   TextField,
   useTheme,
@@ -34,11 +34,11 @@ import {
   Toolbar,
   Badge,
 } from '@mui/material';
-import { 
-  Search as SearchIcon, 
-  Close as CloseIcon, 
+import {
+  Search as SearchIcon,
+  Close as CloseIcon,
   ShoppingCart as ShoppingCartIcon,
-  Print as PrintIcon 
+  Print as PrintIcon
 } from '@mui/icons-material';
 import axios from 'axios';
 import Swal from "sweetalert2";
@@ -73,11 +73,13 @@ const ProductPerCabang = () => {
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
-   const [customerName, setCustomerName] = useState("");
-   const [customerPhone, setCustomerPhone] = useState("");
-   const theme = useTheme();
-   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-   const [mobileCartOpen, setMobileCartOpen] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
+  const [customerEmail, setCustomerEmail] = useState("");
+
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [mobileCartOpen, setMobileCartOpen] = useState(false);
   //console.log("User State:", user); 
   const formatDate = (date) => {
     return new Intl.DateTimeFormat("id-ID", {
@@ -94,12 +96,12 @@ const ProductPerCabang = () => {
     const fetchProductsAndCategories = async () => {
       try {
         const [productResponse, categoryResponse] = await Promise.all([
-        //  axios.get(`${getApiBaseUrl()}/barang`, { withCredentials: true }),
+          //  axios.get(`${getApiBaseUrl()}/barang`, { withCredentials: true }),
           axios.get(`${getApiBaseUrl()}/barangcabang`, { withCredentials: true }),
           axios.get(`${getApiBaseUrl()}/kategori`, { withCredentials: true })
         ]);
         setProducts(productResponse.data.data);
-        setCategories(categoryResponse.data.data); 
+        setCategories(categoryResponse.data.data);
       } catch (err) {
         setError(true);
       } finally {
@@ -117,10 +119,10 @@ const ProductPerCabang = () => {
       } catch (err) {
         console.error("Gagal mendapatkan nama cabang:", err);
         setBranchName("Nama Toko Tidak Diketahui");
-        navigate('/');  
+        navigate('/');
       }
     };
-    
+
     fetchBranchName();
   }, [navigate]);
   const formatCurrency = (value) => {
@@ -129,7 +131,7 @@ const ProductPerCabang = () => {
       ? value.toLocaleString("id-ID", { style: "currency", currency: "IDR" }).replace("Rp", "Rp ")
       : "Rp 0";
   };
-  
+
   const addToOrder = (product) => {
     setOrders((prevOrders) => {
       const existingOrder = prevOrders.find((order) => order.id === product.baranguuid);
@@ -158,242 +160,242 @@ const ProductPerCabang = () => {
 
   const handlePayment = async () => {
     const total = orders.reduce((sum, order) => sum + order.price * order.quantity, 0);
-  
+
     if (!selectedPaymentMethod) {
       Swal.fire("Metode Pembayaran Tidak Dipilih", "Pilih metode pembayaran terlebih dahulu", "error");
       return;
     }
-  
+
     if (selectedPaymentMethod === "cash") {
       await processCashPayment(total);
     } else if (selectedPaymentMethod === "qris") {
       await processQrisPayment(total);
     }
   };
- 
- // console.log("Receipt Data:", receiptData);
-  
- const processCashPayment = async (total) => {
-  if (!customerCash || parseFloat(customerCash) < total) {
-    Swal.fire("Uang tidak mencukupi", "Silakan masukkan jumlah yang benar", "error");
-    return;
-  }
 
-  const change = parseFloat(customerCash) - total;
+  // console.log("Receipt Data:", receiptData);
 
-  try {
-    // Kirim data transaksi ke server
-    await axios.post(`${getApiBaseUrl()}/createtransaksi`, {
-      pembayaran: "cash",
-      customer_name: customerName,
-      customer_phone: customerPhone,
-      items: orders.map((order) => ({
-        baranguuid: order.id,
-        jumlahbarang: order.quantity,
-      })),
-    }, { withCredentials: true });
-    
-    console.log("Customer Name:", customerName);
-    console.log("Customer Phone:", customerPhone);
+  const processCashPayment = async (total) => {
+    if (!customerCash || parseFloat(customerCash) < total) {
+      Swal.fire("Uang tidak mencukupi", "Silakan masukkan jumlah yang benar", "error");
+      return;
+    }
 
-    // Simpan data transaksi sementara untuk ditampilkan di nota
-    setReceiptData({
-      total,
-      paymentMethod: "Cash",
-      customerName,
-      customerPhone,
-      customerCash: parseFloat(customerCash),
-      change,
-      items: orders.map((order) => ({
-        id: order.id,
-        name: order.name,
-        price: order.price,
-        quantity: order.quantity,
-      })),
-    });
+    const change = parseFloat(customerCash) - total;
 
-    console.log(receiptData);
-
-    // Tampilkan sukses transaksi
-    Swal.fire({
-      title: "Pembayaran Berhasil",
-      html: `<p>Total: Rp ${formatCurrency(total)}</p><p>Dibayar: Rp ${formatCurrency(parseFloat(customerCash))}</p><p>Kembalian: Rp ${formatCurrency(change)}</p>`,
-      icon: "success",
-    });
-
-    // Reset data transaksi
-    setPaymentDialogOpen(false);
-    setReceiptDialogOpen(true);
-    setOrders([]); // Kosongkan daftar pesanan
-    setCustomerName(''); // Reset nama pembeli
-    setCustomerPhone('');
-    setCustomerCash(''); // Reset uang customer
-  } catch (error) {
-    Swal.fire("Terjadi kesalahan", "Gagal menyimpan transaksi", "error");
-  }
-};
-
-  
-  const renderQRCode = (qrString) => {
-    return `<div id="qrcode-container" style="background: white; padding: 16px; border-radius: 8px; display: inline-block;"></div>`;
-  };
-  //-----------------------TRANSAKSI MIDTRANS BANYAK OPSI(SNAP)--------------------------
-  // const processQrisPayment = async (total) => {
-  //   try {
-  //     const response = await axios.post(
-  //       `${getApiBaseUrl()}/createtransaksicabang`,
-  //       {
-  //         pembayaran: "qris",
-  //         items: orders.map((order) => ({
-  //           baranguuid: order.id,
-  //           jumlahbarang: order.quantity,
-  //         })),
-  //       },
-  //       { withCredentials: true }
-  //     );
-  
-  //     const { qris_url, transaksi } = response.data?.data || {};
-  //     const orderId = transaksi?.order_id;
-  
-  //     // Validasi respons
-  //     if (!qris_url || !orderId) {
-  //       Swal.fire("Terjadi kesalahan", "Data pembayaran QRIS tidak tersedia", "error");
-  //       return;
-  //     }
-  
-  //     // Tampilkan modal dengan iframe Midtrans
-  //     Swal.fire({
-  //       title: "Pembayaran QRIS",
-  //       html: `
-  //         <div class="text-center">
-  //           <p style="font-size: 16px; margin: 10px 0;">
-  //             <strong>Total Pembayaran:</strong> Rp ${total.toLocaleString()}
-  //           </p>
-  //           <p style="font-size: 14px; color: #666; margin: 10px 0;">
-  //             Order ID: ${orderId}
-  //           </p>
-  //           <iframe 
-  //             src="${qris_url}"
-  //             frameborder="0"
-  //             width="100%"
-  //             height="550px"
-  //           ></iframe>
-  //         </div>
-  //       `,
-  //       showConfirmButton: true,
-  //       confirmButtonText: "Tutup",
-  //       width: 500,
-  //       showCloseButton: true,
-  //       allowOutsideClick: false,
-  //       didOpen: () => {
-  //         const handlePaymentStatus = (event) => {
-  //           if (event.data === "success") {
-  //             Swal.close();
-  //             startPaymentStatusPolling(orderId, () => {
-  //               setReceiptData({
-  //                 total,
-  //                 paymentMethod: "Qris",
-  //                 items: orders.map((order) => ({
-  //                   id: order.id,
-  //                   name: order.name,
-  //                   price: order.price,
-  //                   quantity: order.quantity,
-  //                 })),
-  //               });
-  //             });
-  //           }
-  //         };
-
-  //         window.addEventListener("message", handlePaymentStatus);
-  //         Swal.getPopup().addEventListener("click", () => {
-  //           window.removeEventListener("message", handlePaymentStatus);
-  //         });
-  //       },
-  //     });
-  //   } catch (error) {
-  //     console.error("Error processing QRIS payment:", error);
-  //     Swal.fire("Terjadi kesalahan", "Gagal memproses pembayaran QRIS", "error");
-  //   }
-  // };
-  
-  //-----------------TRANSAKSI KSHUS QRIS(COREAPI)------------------------//
-  const processQrisPayment = async (total) => {
     try {
-      const response = await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
-        pembayaran: "qris",
+      // Kirim data transaksi ke server
+      await axios.post(`${getApiBaseUrl()}/createtransaksi`, {
+        pembayaran: "cash",
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
         items: orders.map((order) => ({
           baranguuid: order.id,
           jumlahbarang: order.quantity,
         })),
-      },{withCredentials: true});
-  
-      const { qris_data, transaksi } = response.data?.data || {};
-      const qrString = qris_data?.qr_string;
+      }, { withCredentials: true });
+
+
+      // Simpan data transaksi sementara untuk ditampilkan di nota
+      setReceiptData({
+        total,
+        paymentMethod: "Cash",
+        customerName,
+        customerPhone,
+        customerEmail,
+        customerCash: parseFloat(customerCash),
+        change,
+        items: orders.map((order) => ({
+          id: order.id,
+          name: order.name,
+          price: order.price,
+          quantity: order.quantity,
+        })),
+      });
+
+
+      // Tampilkan sukses transaksi
+      Swal.fire({
+        title: "Pembayaran Berhasil",
+        html: `<p>Total: Rp ${formatCurrency(total)}</p><p>Dibayar: Rp ${formatCurrency(parseFloat(customerCash))}</p><p>Kembalian: Rp ${formatCurrency(change)}</p>`,
+        icon: "success",
+      });
+
+      // Reset data transaksi
+      setPaymentDialogOpen(false);
+      setReceiptDialogOpen(true);
+      setOrders([]); // Kosongkan daftar pesanan
+      setCustomerName(''); // Reset nama pembeli
+      setCustomerPhone('');
+      setCustomerCash(''); // Reset uang customer
+    } catch (error) {
+      Swal.fire("Terjadi kesalahan", "Gagal menyimpan transaksi", "error");
+    }
+  };
+
+
+  const renderQRCode = (qrString) => {
+    return `<div id="qrcode-container" style="background: white; padding: 16px; border-radius: 8px; display: inline-block;"></div>`;
+  };
+  //-----------------------TRANSAKSI MIDTRANS BANYAK OPSI(SNAP)--------------------------
+  const processQrisPayment = async (total) => {
+    try {
+      const response = await axios.post(
+        `${getApiBaseUrl()}/createtransaksicabang`,
+        {
+          pembayaran: "qris",
+          items: orders.map((order) => ({
+            baranguuid: order.id,
+            jumlahbarang: order.quantity,
+          })),
+        },
+        { withCredentials: true }
+      );
+
+      const { qris_url, transaksi } = response.data?.data || {};
+      console.log(qris_url);
       const orderId = transaksi?.order_id;
-      const generatedImageUrl = qris_data?.generated_image_url;
-  
-      if (!qrString || !orderId) {
-        Swal.fire("Terjadi kesalahan", "Data QRIS tidak tersedia", "error");
+
+      // Validasi respons
+      if (!qris_url || !orderId) {
+        Swal.fire("Terjadi kesalahan", "Data pembayaran QRIS tidak tersedia", "error");
         return;
       }
-      setPaymentDialogOpen(false);
+
+      // Tampilkan modal dengan iframe Midtrans
       Swal.fire({
-        title: "Scan QRIS",
+        title: "Pembayaran QRIS",
         html: `
           <div class="text-center">
             <p style="font-size: 16px; margin: 10px 0;">
-          <strong>Total Pembayaran:</strong> Rp ${formatCurrency(total)}
+              <strong>Total Pembayaran:</strong> Rp ${total.toLocaleString()}
             </p>
             <p style="font-size: 14px; color: #666; margin: 10px 0;">
               Order ID: ${orderId}
             </p>
-            <p style="font-size: 14px; color: #444;">
-              Silakan scan kode QR menggunakan aplikasi e-wallet Anda.
-            </p>
-            <img src="${generatedImageUrl}" alt="QRIS Code" style="max-width: 256px; height: auto;"/>
+            <iframe 
+              src="${qris_url}"
+              frameborder="0"
+              width="100%"
+              height="550px"
+            ></iframe>
           </div>
         `,
         showConfirmButton: true,
         confirmButtonText: "Tutup",
-        width: 600,
+        width: 500,
         showCloseButton: true,
-      });
-      startPaymentStatusPolling(orderId, () => {
-        setReceiptData({
-          total,
-          paymentMethod: "Qris",
-          customerName,
-    items: orders.map((order) => ({
-      id: order.id,
-      name: order.name,
-      price: order.price,
-      quantity: order.quantity,
-    })),
-  });
-        setReceiptDialogOpen(true);
-        setOrders([]); 
+        allowOutsideClick: false,
+        didOpen: () => {
+          const handlePaymentStatus = (event) => {
+            if (event.data === "success") {
+              Swal.close();
+              startPaymentStatusPolling(orderId, () => {
+                setReceiptData({
+                  total,
+                  paymentMethod: "Qris",
+                  items: orders.map((order) => ({
+                    id: order.id,
+                    name: order.name,
+                    price: order.price,
+                    quantity: order.quantity,
+                  })),
+                });
+              });
+            }
+          };
+
+          window.addEventListener("message", handlePaymentStatus);
+          Swal.getPopup().addEventListener("click", () => {
+            window.removeEventListener("message", handlePaymentStatus);
+          });
+        },
       });
     } catch (error) {
       console.error("Error processing QRIS payment:", error);
       Swal.fire("Terjadi kesalahan", "Gagal memproses pembayaran QRIS", "error");
     }
   };
- 
+
+  //-----------------TRANSAKSI KSHUS QRIS(COREAPI)------------------------//
+  // const processQrisPayment = async (total) => {
+  //   try {
+  //     const response = await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
+  //       pembayaran: "qris",
+  //       items: orders.map((order) => ({
+  //         baranguuid: order.id,
+  //         jumlahbarang: order.quantity,
+  //       })),
+  //     }, { withCredentials: true });
+
+  //     const { qris_data, transaksi } = response.data?.data || {};
+  //     const qrString = qris_data?.qr_string;
+  //     const orderId = transaksi?.order_id;
+  //     const generatedImageUrl = qris_data?.generated_image_url;
+
+  //     if (!qrString || !orderId) {
+  //       Swal.fire("Terjadi kesalahan", "Data QRIS tidak tersedia", "error");
+  //       return;
+  //     }
+  //     setPaymentDialogOpen(false);
+  //     Swal.fire({
+  //       title: "Scan QRIS",
+  //       html: `
+  //         <div class="text-center">
+  //           <p style="font-size: 16px; margin: 10px 0;">
+  //         <strong>Total Pembayaran:</strong> Rp ${formatCurrency(total)}
+  //           </p>
+  //           <p style="font-size: 14px; color: #666; margin: 10px 0;">
+  //             Order ID: ${orderId}
+  //           </p>
+  //           <p style="font-size: 14px; color: #444;">
+  //             Silakan scan kode QR menggunakan aplikasi e-wallet Anda.
+  //           </p>
+  //           <img src="${generatedImageUrl}" alt="QRIS Code" style="max-width: 256px; height: auto;"/>
+  //         </div>
+  //       `,
+  //       showConfirmButton: true,
+  //       confirmButtonText: "Tutup",
+  //       width: 600,
+  //       showCloseButton: true,
+  //     });
+  //     startPaymentStatusPolling(orderId, () => {
+  //       setReceiptData({
+  //         total,
+  //         paymentMethod: "Qris",
+  //         customerName,
+  //         items: orders.map((order) => ({
+  //           id: order.id,
+  //           name: order.name,
+  //           price: order.price,
+  //           quantity: order.quantity,
+  //         })),
+  //       });
+  //       setReceiptDialogOpen(true);
+  //       setOrders([]);
+  //     });
+  //   } catch (error) {
+  //     console.error("Error processing QRIS payment:", error);
+  //     Swal.fire("Terjadi kesalahan", "Gagal memproses pembayaran QRIS", "error");
+  //   }
+  // };
+
   useEffect(() => {
     dispatch(Me());
   }, [dispatch]);
-  
+
 
   // **Render QR Code**
 
-  
+
   // **Polling Status Pembayaran**
   const startPaymentStatusPolling = (orderId, onSuccess) => {
     const pollInterval = setInterval(async () => {
       try {
         const statusResponse = await axios.get(`${getApiBaseUrl()}/gettransaksinotification/${orderId}`);
         const status = statusResponse.data?.data?.transaksi?.status_pembayaran;
-  
+
         if (status === "settlement") {
           clearInterval(pollInterval);
           Swal.fire({
@@ -413,8 +415,8 @@ const ProductPerCabang = () => {
       } catch (error) {
         console.error("Error checking payment status:", error);
       }
-    }, 5000); 
-  
+    }, 5000);
+
 
     setTimeout(() => clearInterval(pollInterval), 300000);
   };
@@ -423,8 +425,12 @@ const ProductPerCabang = () => {
     const totalKeseluruhan = receiptData?.total || 0;
     const change = receiptData?.change || 0;
     const customerName = receiptData?.customerName || "Tidak Diketahui";
+    const customerPhone = receiptData?.customerPhone || "-";
+    const customerEmail = receiptData?.customerEmail || "-";
     const customerCash = receiptData?.customerCash || 0;
-  
+
+    console.log(receiptData);
+
     return (
       <Dialog open={receiptDialogOpen} onClose={() => setReceiptDialogOpen(false)}>
         <DialogTitle align="center">Struk Pembelian</DialogTitle>
@@ -434,6 +440,7 @@ const ProductPerCabang = () => {
               {user?.cabang?.namacabang || "Cabang Tidak Diketahui"}
             </Typography>
             <Typography align="center">Pemesan: {customerName}</Typography>
+            <Typography align="center">Telephone: {customerPhone}</Typography>
             <Typography variant="body2" align="center" gutterBottom>
               {formatDate(new Date())}
             </Typography>
@@ -481,8 +488,8 @@ const ProductPerCabang = () => {
       </Dialog>
     );
   };
-  
-  
+
+
   const filteredProducts = products.filter((product) => {
     const matchesCategory =
       !selectedCategory || product?.Barang?.Kategori?.namakategori === selectedCategory;
@@ -491,9 +498,9 @@ const ProductPerCabang = () => {
       product?.Barang?.namabarang?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesCategory && matchesSearch;
   });
- // console.log(products);
+  // console.log(products);
 
-  
+
 
   if (loading) return <CircularProgress />;
   if (error) return <Alert severity="error">Gagal memuat data produk.</Alert>;
@@ -504,7 +511,7 @@ const ProductPerCabang = () => {
       )
     );
   };
-  
+
   const decrementOrder = (id) => {
     setOrders((prevOrders) =>
       prevOrders.map((order) =>
@@ -520,14 +527,14 @@ const ProductPerCabang = () => {
       Swal.fire("Tidak ada data untuk dicetak", "", "error");
       return;
     }
-  
+
     const total = receiptData.items.reduce(
       (sum, item) => sum + (item.price || 0) * (item.quantity || 0),
       0
     );
-  
+
     const change = parseFloat(customerCash || 0) - total;
-  
+
     const receiptContent = `
       <!DOCTYPE html>
       <html>
@@ -600,489 +607,497 @@ const ProductPerCabang = () => {
           <div class="divider"></div>
           <ul class="items">
             ${receiptData.items
-              .map(
-                (order) => `
+        .map(
+          (order) => `
                   <li class="item">
                     <span>${order.name || "Barang tidak tersedia"}</span>
                     <span>${order.quantity || 0} x Rp ${order.price.toLocaleString()} = Rp ${(order.price * order.quantity).toLocaleString()}</span>
                   </li>
                 `
-              )
-              .join("")}
+        )
+        .join("")}
           </ul>
           <div class="divider"></div>
           <p class="total">Total: Rp ${total.toLocaleString()}</p>
-          ${
-            receiptData.paymentMethod === "Cash"
-              ? `<p class="total">Uang Customer: Rp ${parseFloat(customerCash || 0).toLocaleString()}</p>
+          ${receiptData.paymentMethod === "Cash"
+        ? `<p class="total">Uang Customer: Rp ${parseFloat(customerCash || 0).toLocaleString()}</p>
                  <p class="change">Kembalian: Rp ${change > 0 ? change.toLocaleString() : 0}</p>`
-              : ""
-          }
+        : ""
+      }
           <p class="payment-method">Metode Pembayaran: ${receiptData.paymentMethod || "Tidak diketahui"}</p>
           <div class="footer">Terima kasih atas kunjungan Anda</div>
         </body>
       </html>
     `;
-  
+
     const iframe = document.createElement("iframe");
     iframe.style.position = "absolute";
     iframe.style.top = "-10000px";
     document.body.appendChild(iframe);
-  
+
     const iframeDoc = iframe.contentWindow || iframe.contentDocument;
     iframeDoc.document.open();
     iframeDoc.document.write(receiptContent);
     iframeDoc.document.close();
-  
+
     setTimeout(() => {
       iframe.contentWindow.print();
       document.body.removeChild(iframe);
     }, 500);
   };
-  
-const formatRupiah = (value) =>{
-  if(!value)return "";
-  return value
-  .toString()
- .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-}
-const OrdersList = () => (
-  <Box sx={{ 
-    display: 'flex',
-    flexDirection: 'column',
-    height: isMobile ? '100%' : 'auto',
-    bgcolor: 'white',
-    borderRadius: isMobile ? 0 : 2,
-    p: 5,
-    boxShadow: 2
-  }}>
-    <Box sx={{ 
-      display: 'flex', 
-      justifyContent: 'space-between', 
-      alignItems: 'center', 
-      mb: 2 
+
+  const formatRupiah = (value) => {
+    if (!value) return "";
+    return value
+      .toString()
+      .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  }
+  const OrdersList = () => (
+    <Box sx={{
+      display: 'flex',
+      flexDirection: 'column',
+      height: isMobile ? '100%' : 'auto',
+      bgcolor: 'white',
+      borderRadius: isMobile ? 0 : 2,
+      p: 5,
+      boxShadow: 2
     }}>
-      {isMobile && (
-        <IconButton 
-          variant="outlined" 
-          color="secondary" 
-          size="small"
-          onClick={() => setMobileCartOpen(false)}
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 2
+      }}>
+        {isMobile && (
+          <IconButton
+            variant="outlined"
+            color="secondary"
+            size="small"
+            onClick={() => setMobileCartOpen(false)}
+          >
+            <CloseIcon />
+          </IconButton>
+
+        )}
+      </Box>
+      <Typography variant="p" sx={{ mb: 2 }}>
+        Order List
+      </Typography>
+      <div style={{ maxHeight: '300px', overflowY: 'auto', padding: '1px', border: '1px solid #ddd', borderRadius: '1px' }}>
+        <List>
+          {orders.map((order) => (
+            <ListItem
+              key={order.id}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'stretch',
+                gap: 1,
+                py: 2,
+                borderBottom: '1px solid #eee'
+              }}
+            >
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="subtitle2">{order.name}</Typography>
+                <Button
+                  color="error"
+                  size="small"
+                  onClick={() => removeOrder(order.id)}
+                >
+                  Remove
+                </Button>
+              </Box>
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  Rp {(order.price * order.quantity).toLocaleString()}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => decrementOrder(order.id)}
+                    sx={{ minWidth: '32px', p: 0 }}
+                  >
+                    -
+                  </Button>
+                  <Typography>{order.quantity}</Typography>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => incrementOrder(order.id)}
+                    sx={{ minWidth: '32px', p: 0 }}
+                  >
+                    +
+                  </Button>
+                </Box>
+              </Box>
+            </ListItem>
+          ))}
+        </List>
+      </div>
+      <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #eee' }}>
+        <Typography variant="h6" sx={{ mb: 2, textAlign: 'right' }}>
+          Total: Rp {orders.reduce((sum, order) => sum + order.price * order.quantity, 0).toLocaleString()}
+        </Typography>
+        <Button
+          variant="contained"
+          fullWidth
+          onClick={() => {
+            setPaymentDialogOpen(true);
+            if (isMobile) setMobileCartOpen(false);
+          }}
+          sx={{
+            py: 1.5,
+            bgcolor: 'secondary.main',
+            '&:hover': { bgcolor: 'secondary.dark' }
+          }}
         >
-          <CloseIcon />
-         </IconButton>
-       
-      )}
+          Pay
+        </Button>
+      </Box>
     </Box>
-    <Typography variant="p" sx={{ mb: 2}}>
-      Order List
-    </Typography>
-    <div style={{ maxHeight: '300px', overflowY: 'auto', padding: '1px', border: '1px solid #ddd', borderRadius: '1px' }}>
-    <List>
-      {orders.map((order) => (
-        <ListItem
-          key={order.id}
+  );
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'row',
+        height: '100vh',
+        backgroundColor: '#f0f2f5'
+      }}
+    >
+      {/* Products Section */}
+      <Box
+        sx={{
+          flex: 3,
+          display: 'flex',
+          flexDirection: 'column',
+          p: { xs: 1, sm: 2 },
+          gap: 2
+        }}
+      >
+        {/* Mobile Header */}
+        {isMobile && (
+          <AppBar
+            position="static"
+            color="default"
+            elevation={0}
+            sx={{ borderRadius: 2, backgroundColor: 'transparent' }}
+          >
+            <Toolbar>
+              <Typography
+                variant="h6"
+                sx={{
+                  flexGrow: 1,
+                  fontWeight: 'bold',
+                  color: 'primary.main'
+                }}
+              >
+                POS System
+              </Typography>
+              <Badge badgeContent={orders.length} color="secondary">
+                <IconButton onClick={() => setMobileCartOpen(true)}>
+                  <ShoppingCartIcon />
+                </IconButton>
+              </Badge>
+            </Toolbar>
+          </AppBar>
+        )}
+
+        {/* Filters */}
+        <Box
           sx={{
             display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'stretch',
-            gap: 1,
-            py: 2,
-            borderBottom: '1px solid #eee'
+            flexDirection: { xs: 'column', sm: 'row' },
+            gap: 2,
+            backgroundColor: 'white',
+            p: 2,
+            borderRadius: 2,
+            boxShadow: 1
           }}
         >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="subtitle2">{order.name}</Typography>
-            <Button
-              color="error"
-              size="small"
-              onClick={() => removeOrder(order.id)}
-            >
-              Remove
-            </Button>
-          </Box>
-          
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="body2" color="text.secondary">
-              Rp {(order.price * order.quantity).toLocaleString()}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => decrementOrder(order.id)}
-                sx={{ minWidth: '32px', p: 0 }}
-              >
-                -
-              </Button>
-              <Typography>{order.quantity}</Typography>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => incrementOrder(order.id)}
-                sx={{ minWidth: '32px', p: 0 }}
-              >
-                +
-              </Button>
-            </Box>
-          </Box>
-        </ListItem>
-      ))}
-    </List>
-</div>
-    <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #eee' }}>
-      <Typography variant="h6" sx={{ mb: 2, textAlign: 'right' }}>
-        Total: Rp {orders.reduce((sum, order) => sum + order.price * order.quantity, 0).toLocaleString()}
-      </Typography>
-      <Button
-        variant="contained"
-        fullWidth
-        onClick={() => {
-          setPaymentDialogOpen(true);
-          if (isMobile) setMobileCartOpen(false);
-        }}
-        sx={{ 
-          py: 1.5,
-          bgcolor: 'secondary.main',
-          '&:hover': { bgcolor: 'secondary.dark' }
-        }}
-      >
-        Pay
-      </Button>
-    </Box>
-  </Box>
-);
-return (
-  <Box 
-    sx={{ 
-      display: 'flex', 
-      flexDirection: 'row', 
-      height: '100vh', 
-      backgroundColor: '#f0f2f5' 
-    }}
-  >
-    {/* Products Section */}
-    <Box 
-      sx={{ 
-        flex: 3, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        p: { xs: 1, sm: 2 }, 
-        gap: 2 
-      }}
-    >
-      {/* Mobile Header */}
-      {isMobile && (
-        <AppBar 
-          position="static" 
-          color="default" 
-          elevation={0}
-          sx={{ borderRadius: 2, backgroundColor: 'transparent' }}
-        >
-          <Toolbar>
-            <Typography 
-              variant="h6" 
-              sx={{ 
-                flexGrow: 1, 
-                fontWeight: 'bold', 
-                color: 'primary.main' 
-              }}
-            >
-              POS System
-            </Typography>
-            <Badge badgeContent={orders.length} color="secondary">
-              <IconButton onClick={() => setMobileCartOpen(true)}>
-                <ShoppingCartIcon />
-              </IconButton>
-            </Badge>
-          </Toolbar>
-        </AppBar>
-      )}
-
-      {/* Filters */}
-      <Box 
-  sx={{ 
-    display: 'flex', 
-    flexDirection: { xs: 'column', sm: 'row' }, 
-    gap: 2, 
-    backgroundColor: 'white', 
-    p: 2, 
-    borderRadius: 2, 
-    boxShadow: 1 
-  }}
->
-  <FormControl 
-    size="small" 
-    sx={{ 
-      width: { xs: '100%', sm: 200 }, 
-      mb: { xs: 2, sm: 0 }
-    }}
-  >
-    <Select
-      value={selectedCategory}
-      onChange={(e) => setSelectedCategory(e.target.value)}
-      displayEmpty
-      sx={{ 
-        borderRadius: 2, 
-        width: '100%',
-        '& .MuiSelect-select': { 
-          py: 1.5 
-        } 
-      }}
-    >
-      <MenuItem value="">All Categories</MenuItem>
-      {categories.map((category) => (
-        <MenuItem 
-          key={category.uuid} 
-          value={category.namakategori}
-        >
-          {category.namakategori}
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-
-  {/* Search Section */}
-  <Box sx={{ flex: 1, width: '100%' }}>
-    {showSearch ? (
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          border: '1px solid', 
-          borderColor: 'divider', 
-          borderRadius: 2, 
-          px: 2,
-          width: '100%'
-        }}
-      >
-        <InputBase
-          placeholder="Search products"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          sx={{ 
-            flex: 1, 
-            py: 1,
-            width: '100%'
-          }}
-          startAdornment={<SearchIcon sx={{ mr: 2, color: 'text.secondary' }} />}
-        />
-        <IconButton 
-          size="small" 
-          onClick={() => setShowSearch(false)}
-        >
-          <CloseIcon />
-        </IconButton>
-      </Box>
-    ) : (
-      <Button
-        variant="outlined"
-        fullWidth
-        onClick={() => setShowSearch(true)}
-        startIcon={<SearchIcon />}
-        sx={{ 
-          borderRadius: 2, 
-          py: 1.5,
-          width: '100%'
-        }}
-      >
-        Search Products
-      </Button>
-    )}
-  </Box>
-</Box>
-
-       {/* Product Grid */}
-       <Box sx={{ overflowY: "auto", p: 2 }}>
-      <Grid container spacing={2}>
-        {filteredProducts.map((product) => (
-          <Grid item xs={6} sm={4} md={3} key={product.uuid}>
-            <Card sx={{ display: "flex", flexDirection: "column", borderRadius: 2, boxShadow: 3 }}>
-              <Box sx={{ position: "relative", pt: "100%", backgroundColor: "white" }}>
-                <CardMedia
-                  component="img"
-                  image={`${getApiBaseUrl()}/uploads/${product?.Barang?.foto || product?.foto}`}
-                  alt={product?.Barang?.namabarang}
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    borderRadius: "12px 12px 0 0",
-                  }}
-                />
-              </Box>
-              <CardContent sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
-              <Typography 
-              variant="h6" 
-              sx={{ 
-                fontWeight: 'bold', 
-                mb: 1, 
-                fontSize: '1rem' 
-              }}
-            >
-              {product?.Barang?.namabarang}
-            </Typography>
-              <Typography 
-              color="primary" 
-              sx={{ 
-                fontWeight: 'bold', 
-                mb: 1, 
-                fontSize: '0.9rem' 
-              }}
-            >
-              Rp {parseFloat(product?.Barang?.harga).toLocaleString("id-ID")}
-            </Typography>
-                <Typography
-                  sx={{
-                    fontSize: "0.875rem",
-                    fontWeight: 500,
-                    color: "text.primary",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                  }}
-                >
-                  {product?.Barang?.Kategori?.namakategori}
-                </Typography>
-              </CardContent>
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{
-                  py: 1.5,
-                  borderRadius: "0 0 12px 12px",
-                  backgroundColor: "primary.main",
-                  transition: "background-color 0.3s",
-                  "&:hover": { backgroundColor: "primary.dark" },
-                }}
-                onClick={() => addToOrder(product)}
-              >
-                Add to Order
-              </Button>
-            </Card>
-          </Grid>
-        ))}
-      </Grid>
-    </Box>
-    </Box>
-
-    {/* Orders Section */}
-    {!isMobile ? (
-      <Box 
-        sx={{ 
-          width: 350, 
-          backgroundColor: 'white', 
-          borderLeft: '1px solid', 
-          borderColor: 'divider' 
-        }}
-      >
-        <OrdersList />
-      </Box>
-    ) : (
-      <Drawer
-        anchor="right"
-        open={mobileCartOpen}
-        onClose={() => setMobileCartOpen(false)}
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: '100%',
-            maxWidth: 350,
-            boxSizing: 'border-box',
-            borderRadius: '16px 0 0 16px'
-          },
-        }}
-      >
-        <OrdersList />
-      </Drawer>
-    )}
-
-    {/* Payment Dialog */}
-    <ReceiptDialog />
-    <Dialog 
-      open={paymentDialogOpen} 
-      onClose={() => setPaymentDialogOpen(false)}
-      PaperProps={{ 
-        sx: { 
-          borderRadius: 3, 
-          p: 1 
-        } 
-      }}
-    >
-      <DialogTitle>Select Payment Method</DialogTitle>
-      <DialogContent>
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <Select
-            value={selectedPaymentMethod}
-            onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-            displayEmpty
-            sx={{ 
-              borderRadius: 2, 
-              mb: 2 
+          <FormControl
+            size="small"
+            sx={{
+              width: { xs: '100%', sm: 200 },
+              mb: { xs: 2, sm: 0 }
             }}
           >
-            <MenuItem value="qris">QRIS</MenuItem>
-            <MenuItem value="cash">Cash</MenuItem>
-          </Select>
-          
-          {selectedPaymentMethod && (
-            <>
-            <TextField
-              fullWidth
-              label="Customer Name"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              sx={{ mb: 2 }}
-              variant="outlined"
-            />
-
-            <TextField
-              fullWidth
-              label="Customer Phone"
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              sx={{ mb: 2 }}
-              variant="outlined"
-            />
-            </>
-          )}
-
-          {selectedPaymentMethod === "cash" && (
-            <TextField
-              fullWidth
-              label="Customer Cash"
-              type="number"
-              value={formatRupiah(customerCash)}
-              onChange={(e) => {
-                const rawValue = e.target.value.replace(/\./g, "");
-                if (!isNaN(rawValue)) {
-                  setCustomerCash(rawValue);
+            <Select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              displayEmpty
+              sx={{
+                borderRadius: 2,
+                width: '100%',
+                '& .MuiSelect-select': {
+                  py: 1.5
                 }
               }}
-              variant="outlined"
-            />
-          )}
-        </FormControl>
-      </DialogContent>
-      <DialogActions>
-          <Button 
-            onClick={() => setPaymentDialogOpen(false)} 
+            >
+              <MenuItem value="">All Categories</MenuItem>
+              {categories.map((category) => (
+                <MenuItem
+                  key={category.uuid}
+                  value={category.namakategori}
+                >
+                  {category.namakategori}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+
+          {/* Search Section */}
+          <Box sx={{ flex: 1, width: '100%' }}>
+            {showSearch ? (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  px: 2,
+                  width: '100%'
+                }}
+              >
+                <InputBase
+                  placeholder="Search products"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  sx={{
+                    flex: 1,
+                    py: 1,
+                    width: '100%'
+                  }}
+                  startAdornment={<SearchIcon sx={{ mr: 2, color: 'text.secondary' }} />}
+                />
+                <IconButton
+                  size="small"
+                  onClick={() => setShowSearch(false)}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+            ) : (
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => setShowSearch(true)}
+                startIcon={<SearchIcon />}
+                sx={{
+                  borderRadius: 2,
+                  py: 1.5,
+                  width: '100%'
+                }}
+              >
+                Search Products
+              </Button>
+            )}
+          </Box>
+        </Box>
+
+        {/* Product Grid */}
+        <Box sx={{ overflowY: "auto", p: 2 }}>
+          <Grid container spacing={2}>
+            {filteredProducts.map((product) => (
+              <Grid item xs={6} sm={4} md={3} key={product.uuid}>
+                <Card sx={{ display: "flex", flexDirection: "column", borderRadius: 2, boxShadow: 3 }}>
+                  <Box sx={{ position: "relative", pt: "100%", backgroundColor: "white" }}>
+                    <CardMedia
+                      component="img"
+                      image={`${getApiBaseUrl()}/uploads/${product?.Barang?.foto || product?.foto}`}
+                      alt={product?.Barang?.namabarang}
+                      sx={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                        borderRadius: "12px 12px 0 0",
+                      }}
+                    />
+                  </Box>
+                  <CardContent sx={{ p: 2, textAlign: "center", flexGrow: 1 }}>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        fontWeight: 'bold',
+                        mb: 1,
+                        fontSize: '1rem'
+                      }}
+                    >
+                      {product?.Barang?.namabarang}
+                    </Typography>
+                    <Typography
+                      color="primary"
+                      sx={{
+                        fontWeight: 'bold',
+                        mb: 1,
+                        fontSize: '0.9rem'
+                      }}
+                    >
+                      Rp {parseFloat(product?.Barang?.harga).toLocaleString("id-ID")}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: "0.875rem",
+                        fontWeight: 500,
+                        color: "text.primary",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        display: "-webkit-box",
+                        WebkitLineClamp: 2,
+                        WebkitBoxOrient: "vertical",
+                      }}
+                    >
+                      {product?.Barang?.Kategori?.namakategori}
+                    </Typography>
+                  </CardContent>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    sx={{
+                      py: 1.5,
+                      borderRadius: "0 0 12px 12px",
+                      backgroundColor: "primary.main",
+                      transition: "background-color 0.3s",
+                      "&:hover": { backgroundColor: "primary.dark" },
+                    }}
+                    onClick={() => addToOrder(product)}
+                  >
+                    Add to Order
+                  </Button>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      </Box>
+
+      {/* Orders Section */}
+      {!isMobile ? (
+        <Box
+          sx={{
+            width: 350,
+            backgroundColor: 'white',
+            borderLeft: '1px solid',
+            borderColor: 'divider'
+          }}
+        >
+          <OrdersList />
+        </Box>
+      ) : (
+        <Drawer
+          anchor="right"
+          open={mobileCartOpen}
+          onClose={() => setMobileCartOpen(false)}
+          sx={{
+            '& .MuiDrawer-paper': {
+              width: '100%',
+              maxWidth: 350,
+              boxSizing: 'border-box',
+              borderRadius: '16px 0 0 16px'
+            },
+          }}
+        >
+          <OrdersList />
+        </Drawer>
+      )}
+
+      {/* Payment Dialog */}
+      <ReceiptDialog />
+      <Dialog
+        open={paymentDialogOpen}
+        onClose={() => setPaymentDialogOpen(false)}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 1
+          }
+        }}
+      >
+        <DialogTitle>Select Payment Method</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <Select
+              value={selectedPaymentMethod}
+              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+              displayEmpty
+              sx={{
+                borderRadius: 2,
+                mb: 2
+              }}
+            >
+              <MenuItem value="qris">QRIS</MenuItem>
+              <MenuItem value="cash">Cash</MenuItem>
+            </Select>
+
+            {selectedPaymentMethod && (
+              <>
+                <TextField
+                  fullWidth
+                  label="Customer Name"
+                  value={customerName}
+                  onChange={(e) => setCustomerName(e.target.value)}
+                  sx={{ mb: 2 }}
+                  variant="outlined"
+                />
+
+                <TextField
+                  fullWidth
+                  label="Customer Phone"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  sx={{ mb: 2 }}
+                  variant="outlined"
+                />
+
+                <TextField
+                  fullWidth
+                  label="Customer Email"
+                  value={customerEmail}
+                  onChange={(e) => setCustomerEmail(e.target.value)}
+                  sx={{ mb: 2 }}
+                  variant="outlined"
+                />
+              </>
+            )}
+
+            {selectedPaymentMethod === "cash" && (
+              <TextField
+                fullWidth
+                label="Customer Cash"
+                type="number"
+                value={formatRupiah(customerCash)}
+                onChange={(e) => {
+                  const rawValue = e.target.value.replace(/\./g, "");
+                  if (!isNaN(rawValue)) {
+                    setCustomerCash(rawValue);
+                  }
+                }}
+                variant="outlined"
+              />
+            )}
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setPaymentDialogOpen(false)}
             color="secondary"
             sx={{ borderRadius: 2 }}
           >
             Cancel
           </Button>
-          <Button 
-            onClick={handlePayment} 
-            color="primary" 
+          <Button
+            onClick={handlePayment}
+            color="primary"
             variant="contained"
-            sx={{ 
+            sx={{
               borderRadius: 2,
-              px: 3  
+              px: 3
             }}
             startIcon={<PrintIcon />}
           >

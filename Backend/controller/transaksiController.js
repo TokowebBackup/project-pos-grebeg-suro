@@ -1,3 +1,4 @@
+const { sendInvoiceEmail } = require("../config/email");
 const Transaksi = require('../models/transaksiModel')
 const TransaksiDetail = require('../models/transaksiDetailModel')
 const User = require('../models/userModel')
@@ -424,6 +425,7 @@ exports.createTransaksi = async (req, res) => {
     const { pembayaran, items } = req.body;
     const customerName = req.body.customer_name || req.body.customerName;
     const customerPhone = req.body.customer_phone || req.body.customerPhone;
+    const customerEmail = req.body.customer_email || req.body.customerEmail;
 
     const user = req.user;
     if (!user) {
@@ -474,6 +476,7 @@ exports.createTransaksi = async (req, res) => {
         useruuid: user.uuid,
         customer_name: customerName,
         customer_phone: customerPhone,
+        customer_email: customerEmail,
         totaljual,
         pembayaran,
         status_pembayaran: pembayaran === 'cash' ? 'settlement' : 'pending',
@@ -547,9 +550,52 @@ exports.createTransaksi = async (req, res) => {
       };
     }
     await t.commit();
+
+    const invoiceHTML = `
+      <h2>Invoice Transaksi - ${orderId}</h2>
+      <p>Customer: <strong>${customerName}</strong></p>
+      <p>Email: ${customerEmail}</p>
+      <p>Total: <strong>Rp${totaljual.toLocaleString()}</strong></p>
+      <table border="1" cellpadding="6" cellspacing="0">
+        <thead>
+          <tr>
+            <th>Nama Barang</th>
+            <th>Jumlah</th>
+            <th>Harga</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${validatedItems
+        .map(
+          (item) => `
+            <tr>
+              <td>${barangMap.get(item.baranguuid).namabarang}</td>
+              <td>${item.jumlahbarang}</td>
+              <td>Rp${parseInt(item.harga).toLocaleString()}</td>
+              <td>Rp${parseInt(item.total).toLocaleString()}</td>
+            </tr>
+          `
+        )
+        .join("")}
+        </tbody>
+      </table>
+      <p>Status Pembayaran: <strong>${pembayaran}</strong></p>
+    `;
+
+    if (customerEmail) {
+      sendInvoiceEmail(
+        customerEmail,
+        `Invoice Transaksi ${orderId}`,
+        invoiceHTML
+      ).catch(console.error); // agar error-nya tidak menghentikan proses
+    }
+
     return res.status(201).json(response);
   } catch (error) {
-    await t.rollback();
+    if (!t.finished) {
+      await t.rollback(); // hanya rollback jika transaksi belum selesai
+    }
     return res.status(500).json({
       status: false,
       message: error.message,

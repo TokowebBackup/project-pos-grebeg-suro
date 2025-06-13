@@ -34,32 +34,31 @@ const store = new SequelizeStore({
 (async () => {
     await db.sync();
 })();
-
-app.use(cors({
-    origin: true,//'http://localhost:3000',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-}));
+// app.use(cors({
+//     origin: true,//'http://localhost:3000',
+//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//     allowedHeaders: ['Content-Type', 'Authorization'],
+//     credentials: true
+// }));
 
 // app.use(cors());
 
-// const allowedOrigins = [
-//     'http://localhost:3000',
-//     'https://kasir-grebegsuro.mindsparks.id',
-//     'https://kasir.grebegsuro.id',
-// ];
+const allowedOrigins = [
+    'http://localhost:3000',
+    'https://kasir-grebegsuro.mindsparks.id',
+    'https://kasir.grebegsuro.id',
+];
 
-// app.use(cors({
-//     origin: function (origin, callback) {
-//         if (!origin || allowedOrigins.includes(origin)) {
-//             callback(null, true);
-//         } else {
-//             callback(new Error('Not allowed by CORS'));
-//         }
-//     },
-//     credentials: true,
-// }));
+app.use(cors({
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+}));
 
 // app.use(cors({
 //     origin: (origin, callback) => {
@@ -95,8 +94,8 @@ app.use(session({
     cookie: {
         secure: isProduction,    // true hanya kalau production / HTTPS
         httpOnly: true,
-        // sameSite: isProduction ? 'None' : 'Lax',
-        // domain: isProduction ? '.mindsparks.id' : undefined,
+        sameSite: isProduction ? 'None' : 'Lax',
+        domain: isProduction ? '.grebegsuro.id' : undefined,
         // sameSite: 'None',
         // domain: '.grebegsuro.id',
         maxAge: 1000 * 60 * 60,

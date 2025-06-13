@@ -128,7 +128,7 @@ export const Branch = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Nama Cabang</TableCell>
+              <TableCell>Penjual</TableCell>
               <TableCell>Alamat</TableCell>
               {/* <TableCell>Koordinat</TableCell> */}
               <TableCell>Aksi</TableCell>

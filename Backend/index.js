@@ -11,7 +11,6 @@ const barangRoutes = require('./routes/barangRoutes')
 const cabangRoutes = require('./routes/cabangRoutes')
 const kategoriRoutes = require('./routes/kategoriRoutes')
 const transaksiRoutes = require('./routes/transaksiRoutes')
-const customerRoutes = require('./routes/customerRoutes')
 const userRoutes = require('./routes/userRoutes')
 const laporan = require('./routes/laporanRoutes')
 const uploadRoutes = require('./routes/uploadRoutes')
@@ -25,55 +24,34 @@ setupAssociations();
 const app = express()
 
 const SESS_SECRET = "qwertysaqdunasndjwnqnkndklawkdwk";
-const isProduction = process.env.NODE_ENV === 'production';
 
 const store = new SequelizeStore({
     db: db
 });
 
-(async () => {
-    await db.sync();
-})();
-// app.use(cors({
-//     origin: true,//'http://localhost:3000',
-//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//     allowedHeaders: ['Content-Type', 'Authorization'],
-//     credentials: true
-// }));
-
-// app.use(cors());
-
-const allowedOrigins = [
-    'http://localhost:3000',
-    'https://kasir-grebegsuro.mindsparks.id',
-    'https://kasir.grebegsuro.id',
-];
-
+// (async() => {
+//    await db.sync();
+// })();
 app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true,
+    origin: true,//'http://localhost:3000',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
 }));
+// const allowedOrigins = ['http://localhost:3000', 'http://192.168.1.20:3000','http://192.168.100.18:3000','http://192.168.100.18:5000','http://192.168.1.5:3000','http://192.168.100.19:3000'];
 
 // app.use(cors({
 //     origin: (origin, callback) => {
 //         if (!origin || allowedOrigins.includes(origin)) {
-//             callback(null, true);
+//             callback(null, true); 
 //         } else {
-//             callback(new Error('Not allowed by CORS'));
+//             callback(new Error('Not allowed by CORS')); 
 //         }
 //     },
 //     methods: ['GET', 'POST', 'PUT', 'DELETE'],
 //     allowedHeaders: ['Content-Type', 'Authorization'],
 //     credentials: true
 // }));
-
-
 app.use(fileUpload());
 
 
@@ -85,20 +63,16 @@ app.use((req, res, next) => {
     res.setHeader('Date', moment().tz(TIMEZONE).format('ddd, DD MMM YYYY HH:mm:ss [GMT+0700]'));
     next();
 });
-app.set('trust proxy', 1);
+
 app.use(session({
     secret: SESS_SECRET,
-    resave: true,
-    saveUninitialized: false,
+    resave: false,
+    saveUninitialized: true,
     store: store,
     cookie: {
-        secure: isProduction,    // true hanya kalau production / HTTPS
+        secure: false, // Untuk pengujian lokal, gunakan `false`
         httpOnly: true,
-        // sameSite: isProduction ? 'None' : 'Lax',
-        // domain: isProduction ? '.mindsparks.id' : undefined,
-        // sameSite: 'None',
-        // domain: '.grebegsuro.id',
-        maxAge: 1000 * 60 * 60,
+        sameSite: 'lax',
     }
 }));
 app.use(express.json({ limit: '10mb' }));
@@ -110,18 +84,15 @@ app.use(barangRoutes)
 app.use(cabangRoutes)
 app.use(kategoriRoutes)
 app.use(transaksiRoutes)
-app.use(customerRoutes);
 app.use(userRoutes)
 app.use(laporan)
 app.use(uploadRoutes)
 
 app.get('/', (req, res) => {
-    res.json({
-        message: "Pos Api v1 - Grebeg Suro"
-    }, 200);
+    res.send('berhasil');
 });
 
-store.sync();
+// store.sync();
 
 const port = 5001
 
