@@ -1,16 +1,14 @@
-const express = require('express')
-const { getAllPaymentMethods, addPaymentMethod, updatePaymentMethod } = require('../controller/paymentMethodController')
-const { verifyUser, superAdminOnly } = require('../middleware/userMiddleware')
+// routes/paymentMethodRoutes.js
+const express = require('express');
+const { getAllPaymentMethods, addPaymentMethod, updatePaymentMethod, deletePaymentMethod, uploadQrisImage } = require('../controller/paymentMethodController');
+const { verifyUser, superAdminOnly } = require('../middleware/userMiddleware');
 
-const router = express.Router()
+const router = express.Router();
 
-// Ambil semua metode pembayaran (boleh untuk admin)
 router.get('/paymentmethods', verifyUser, getAllPaymentMethods);
-
-router.post('/addpaymentmethod', verifyUser, addPaymentMethod)
-
-// Edit metode pembayaran (khusus super admin)
-router.put('/paymentmethods/:id', verifyUser, updatePaymentMethod);
+router.post('/addpaymentmethod', verifyUser, uploadQrisImage, addPaymentMethod);
+router.put('/paymentmethods/:id', verifyUser, uploadQrisImage, updatePaymentMethod);
+router.delete('/paymentmethods/:id', verifyUser, deletePaymentMethod);
 
 
-module.exports = router
+module.exports = router;

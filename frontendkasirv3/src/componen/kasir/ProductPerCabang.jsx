@@ -57,6 +57,7 @@ const getApiBaseUrl = () => {
   const baseUrl = process.env.REACT_APP_URL.replace(/^https?:\/\//, "");
   return `${protocol}://${baseUrl}`;
 };
+
 const fetcher = async (url) => {
   const response = await axios.get(url, {
     withCredentials: true
@@ -524,22 +525,23 @@ const ProductPerCabang = () => {
     }
   };
 
-
   const handleQrisManualPayment = async (totalPayment) => {
     const defaultMethods = paymentMethods.filter((method) => method.isDefault);
-
-    setPaymentDialogOpen(false)
 
     if (defaultMethods.length === 0) {
       Swal.fire('Tidak ada metode QRIS default', 'Silakan tambahkan metode pembayaran QRIS', 'error');
       return;
     }
 
+    setPaymentDialogOpen(false)
+
+    // Jika hanya ada satu metode QRIS default
     if (defaultMethods.length === 1) {
       const method = defaultMethods[0];
-      const qrString = `${method.bankName}|${method.accountNumber}|${totalPayment}`;
-      showQrCode(totalPayment, qrString, method.bankName, method.accountNumber);
+      const orderId = await createOrderId(totalPayment); // Buat orderId terlebih dahulu
+      showQrCode(totalPayment, `${getApiBaseUrl()}${method.file}`, orderId);
     } else {
+      // Jika ada lebih dari satu metode QRIS, tampilkan pilihan
       const { value: selectedMethod } = await Swal.fire({
         title: 'Pilih Metode QRIS',
         input: 'select',
@@ -552,13 +554,37 @@ const ProductPerCabang = () => {
       });
 
       if (selectedMethod) {
-        const method = defaultMethods.find((m) => m.id.toString() === selectedMethod);
-        const qrString = `${method.bankName}|${method.accountNumber}|${total}`;
         setLoading(false);
-        showQrCode(totalPayment, qrString, method.bankName, method.accountNumber);
+
+        const method = defaultMethods.find((m) => m.id.toString() === selectedMethod);
+        const orderId = await createOrderId(totalPayment); // Buat orderId terlebih dahulu
+        showQrCode(totalPayment, `${getApiBaseUrl()}${method.file}`, orderId);
       }
     }
   };
+
+  const createOrderId = async (totalPayment) => {
+    try {
+      const response = await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
+        pembayaran: "cash",
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
+        items: orders.map((order) => ({
+          baranguuid: order.id,
+          jumlahbarang: order.quantity,
+        })),
+      }, { withCredentials: true });
+
+      const orderId = response.data.data.transaksi.order_id;
+      return orderId;
+    } catch (error) {
+      console.error('Error saat membuat order ID:', error);
+      return null;
+    }
+  };
+
+
 
   const getTotalPaymentFromOrders = () => {
     const total = orders.reduce((acc, order) => acc + (order.price * order.quantity || 0), 0);
@@ -567,37 +593,33 @@ const ProductPerCabang = () => {
   };
 
 
-  const showQrCode = (totalPayment, qrString, bankName, accountNumber) => {
+  const showQrCode = (totalPayment, qrImageUrl, orderId) => {
     Swal.fire({
       title: 'QRIS Manual',
       html: `
-      <div style="text-align: center;">
-        <p><strong>Bank:</strong> ${bankName}</p>
-        <p><strong>Nomor Rekening:</strong> ${accountNumber}</p>
-        <div id="qrcode-container" style="display: flex; justify-content: center;"></div>
-      </div>
-    `,
+        <div class="text-center">
+            <p style="font-size: 16px; margin: 10px 0;">
+                <strong>Total Pembayaran:</strong> Rp ${formatCurrency(totalPayment)}
+            </p>
+            <p style="font-size: 14px; color: #666; margin: 10px 0;">
+                Order ID: ${orderId}
+            </p>
+            <p style="font-size: 14px; color: #444;">
+                Silakan scan kode QR menggunakan aplikasi e-wallet Anda.
+            </p>
+            <img src="${qrImageUrl}" alt="QRIS Code" style="max-width: 256px; height: auto;"/>
+        </div>
+        `,
       showCloseButton: true,
       allowOutsideClick: false,
-      allowEscapeKey: false,
       confirmButtonText: 'Tutup',
-      didOpen: () => {
-        const container = document.getElementById('qrcode-container');
-        const root = createRoot(container); // Buat root baru
-        root.render(<QRCodeCanvas value={qrString} size={200} />);
-      },
       willClose: () => {
-        const container = document.getElementById('qrcode-container');
-        const totalPayment = getTotalPaymentFromOrders();
-        console.log("Total Payment:", totalPayment);
+        // Panggil fungsi untuk memproses pembayaran QRIS manual
         processPaymentQrisManual(totalPayment);
-        if (container) {
-          const root = createRoot(container);
-          root.unmount();
-        }
-      },
+      }
     });
   };
+
 
 
   // **Polling Status Pembayaran**
@@ -1282,7 +1304,7 @@ const ProductPerCabang = () => {
                 mb: 2
               }}
             >
-              {/* <MenuItem value="qris-manual">QRIS Manual</MenuItem> */}
+              <MenuItem value="qris-manual">QRIS Manual</MenuItem>
               <MenuItem value="qris">QRIS</MenuItem>
               <MenuItem value="cash">Cash</MenuItem>
             </Select>

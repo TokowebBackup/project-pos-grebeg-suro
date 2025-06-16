@@ -211,6 +211,7 @@ exports.getBarangCabangSuperadmin = async (req, res) => {
         });
     }
 };
+
 exports.getBarangCabang = async (req, res) => {
     try {
         const user = req.user;

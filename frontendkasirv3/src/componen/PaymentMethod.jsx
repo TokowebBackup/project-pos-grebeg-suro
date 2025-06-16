@@ -12,7 +12,6 @@ import {
     TableCell,
     TableHead,
     TableRow,
-    TextField,
     Typography,
     TableContainer,
     Paper,
@@ -21,6 +20,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axios from "axios";
+import Swal from "sweetalert2";
 
 const getApiBaseUrl = () => {
     const protocol = window.location.protocol === "https:" ? "https" : "http";
@@ -36,9 +36,8 @@ function PaymentMethod() {
     const [isEditing, setIsEditing] = useState(false);
     const [currentMethod, setCurrentMethod] = useState({
         id: "",
-        bankName: "",
-        accountNumber: "",
-        isDefault: false, // Tambahkan isDefault
+        qrisImage: null,
+        isDefault: false,
     });
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -47,7 +46,6 @@ function PaymentMethod() {
         fetcher
     );
 
-    // Only allow superadmin to access this page/component
     if (!user || user.role !== "superadmin") {
         return <Typography sx={{ p: 3 }}>Access denied. Superadmin only.</Typography>;
     }
@@ -58,70 +56,113 @@ function PaymentMethod() {
             setCurrentMethod(method);
         } else {
             setIsEditing(false);
-            setCurrentMethod({ bankName: "", accountNumber: "", isDefault: false }); // Reset isDefault
+            setCurrentMethod({ qrisImage: null, isDefault: false });
         }
         setOpenModal(true);
     };
 
     const handleCloseModal = () => {
         setOpenModal(false);
-        setCurrentMethod({ bankName: "", accountNumber: "", isDefault: false });
+        setCurrentMethod({ qrisImage: null, isDefault: false });
     };
 
     const handleFormChange = (e) => {
-        const { name, value, type, checked } = e.target;
+        const { name, type, checked, files } = e.target;
         setCurrentMethod((prev) => ({
             ...prev,
-            [name]: type === "checkbox" ? checked : value,
+            [name]: type === "checkbox" ? checked : files ? files[0] : e.target.value,
         }));
     };
 
+
     const handleSaveMethod = async () => {
-        const { bankName, accountNumber } = currentMethod;
-        if (!bankName.trim() || !accountNumber.trim()) {
-            alert("Bank Name and Account Number are required.");
-            return;
-        }
+        const formData = new FormData();
+        formData.append('qrisImage', currentMethod.qrisImage);
+        formData.append('isDefault', currentMethod.isDefault);
 
         try {
+            let response;
             if (isEditing) {
-                await axios.put(
+                response = await axios.put(
                     `${getApiBaseUrl()}/paymentmethods/${currentMethod.id}`,
-                    currentMethod, // Kirim currentMethod yang sudah termasuk isDefault
-                    { withCredentials: true }
+                    formData,
+                    { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' } }
                 );
             } else {
-                await axios.post(
+                response = await axios.post(
                     `${getApiBaseUrl()}/addpaymentmethod`,
-                    currentMethod, // Kirim currentMethod yang sudah termasuk isDefault
-                    { withCredentials: true }
+                    formData,
+                    { withCredentials: true, headers: { 'Content-Type': 'multipart/form-data' } }
                 );
             }
-            mutate(`${getApiBaseUrl()}/paymentmethods`);
+
+            // Update state dengan data yang diterima dari server
+            const newPaymentMethod = response.data.data; // Ambil data dari respons
+            mutate(`${getApiBaseUrl()}/paymentmethods`, (prev) => {
+                if (isEditing) {
+                    // Update metode pembayaran yang sudah ada
+                    return prev.map(method => method.id === newPaymentMethod.id ? newPaymentMethod : method);
+                } else {
+                    // Tambahkan metode pembayaran baru
+                    return [...prev, newPaymentMethod];
+                }
+            }, false);
+
             handleCloseModal();
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Payment method saved successfully!',
+            });
         } catch (error) {
-            alert(error.response?.data?.message || "Failed to save payment method.");
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.response?.data?.message || "Failed to save payment method.",
+            });
         }
     };
+
+
 
     const handleDeleteMethod = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this payment method?")) return;
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, delete it!'
+        });
 
-        try {
-            await axios.delete(`${getApiBaseUrl()}/paymentmethods/${id}`, { withCredentials: true });
-            mutate(`${getApiBaseUrl()}/paymentmethods`);
-        } catch (error) {
-            alert(error.response?.data?.message || "Failed to delete payment method.");
+        if (result.isConfirmed) {
+            try {
+                await axios.delete(`${getApiBaseUrl()}/paymentmethods/${id}`, { withCredentials: true });
+                mutate(`${getApiBaseUrl()}/paymentmethods`);
+                Swal.fire(
+                    'Deleted!',
+                    'Your payment method has been deleted.',
+                    'success'
+                );
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: error.response?.data?.message || "Failed to delete payment method.",
+                });
+            }
         }
     };
+
 
     if (paymentMethodError) return <Typography sx={{ p: 3 }}>Error loading data.</Typography>;
     if (!paymentMethods) return <Typography sx={{ p: 3 }}>Loading...</Typography>;
 
-    // Filter payment methods based on search term
     const filteredMethods = paymentMethods.filter((method) =>
-        method.bankName.toLowerCase().includes(searchTerm.toLowerCase())
+        (method.file || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
+
 
     return (
         <Box
@@ -168,14 +209,6 @@ function PaymentMethod() {
                             flexWrap: "wrap",
                         }}
                     >
-                        <TextField
-                            variant="outlined"
-                            placeholder="Search by bank name"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            size="small"
-                            sx={{ minWidth: 300, flexGrow: 1 }}
-                        />
                         <Button variant="contained" color="primary" onClick={() => handleOpenModal()}>
                             Add Payment Method
                         </Button>
@@ -187,18 +220,13 @@ function PaymentMethod() {
                     sx={{
                         maxWidth: "100%",
                         overflowX: "auto",
-                        "&::-webkit-scrollbar": { height: "8px" },
-                        "&::-webkit-scrollbar-track": { backgroundColor: "#f1f1f1" },
-                        "&::-webkit-scrollbar-thumb": { backgroundColor: "#888", borderRadius: "4px" },
-                        "&::-webkit-scrollbar-thumb:hover": { backgroundColor: "#555" },
                     }}
                 >
                     <Table size="small">
                         <TableHead>
                             <TableRow>
                                 <TableCell sx={{ whiteSpace: "nowrap" }}>No</TableCell>
-                                <TableCell sx={{ whiteSpace: "nowrap" }}>Bank Name</TableCell>
-                                <TableCell sx={{ whiteSpace: "nowrap" }}>Account Number</TableCell>
+                                <TableCell sx={{ whiteSpace: "nowrap" }}>QRIS Image</TableCell>
                                 <TableCell sx={{ whiteSpace: "nowrap" }}>Default</TableCell>
                                 <TableCell sx={{ whiteSpace: "nowrap" }}>Actions</TableCell>
                             </TableRow>
@@ -207,8 +235,13 @@ function PaymentMethod() {
                             {filteredMethods.map((method, index) => (
                                 <TableRow key={method.id}>
                                     <TableCell sx={{ whiteSpace: "nowrap" }}>{index + 1}</TableCell>
-                                    <TableCell sx={{ whiteSpace: "nowrap" }}>{method.bankName}</TableCell>
-                                    <TableCell sx={{ whiteSpace: "nowrap" }}>{method.accountNumber}</TableCell>
+                                    <TableCell sx={{ whiteSpace: "nowrap" }}>
+                                        {
+                                            method?.file && (
+                                                <img src={`${getApiBaseUrl()}${method.file}`} alt="QRIS" style={{ width: '100px' }} />
+                                            )
+                                        }
+                                    </TableCell>
                                     <TableCell sx={{ whiteSpace: "nowrap" }}>
                                         <Checkbox
                                             checked={method.isDefault}
@@ -260,24 +293,11 @@ function PaymentMethod() {
                             {isEditing ? "Edit Payment Method" : "Add New Payment Method"}
                         </Typography>
 
-                        <TextField
-                            fullWidth
-                            label="Bank Name"
-                            name="bankName"
-                            value={currentMethod.bankName}
+                        <input
+                            type="file"
+                            name="qrisImage" // Pastikan ini sesuai dengan yang diharapkan di backend
                             onChange={handleFormChange}
-                            margin="normal"
-                            size="small"
-                            autoFocus
-                        />
-                        <TextField
-                            fullWidth
-                            label="Account Number"
-                            name="accountNumber"
-                            value={currentMethod.accountNumber}
-                            onChange={handleFormChange}
-                            margin="normal"
-                            size="small"
+                            accept="image/*"
                         />
                         <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
                             <Checkbox

@@ -10,21 +10,17 @@ paymentMethodModel.init({
         autoIncrement: true,
         primaryKey: true,
     },
-    bankName: {
+    file: { // Pastikan ini adalah nama field yang benar
         type: DataTypes.STRING,
         allowNull: false,
     },
-    accountNumber: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    isDefault: { // Tambahkan kolom ini
+    isDefault: {
         type: DataTypes.BOOLEAN,
-        defaultValue: false, // Default value untuk isDefault
+        defaultValue: false,
     },
 }, {
     sequelize: db,
-    timestamps: true,        // createdAt and updatedAt handled automatically
+    timestamps: true,
     modelName: 'PaymentMethod',
     tableName: 'paymentmethods',
 });
