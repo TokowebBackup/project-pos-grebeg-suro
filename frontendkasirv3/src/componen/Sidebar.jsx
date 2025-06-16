@@ -169,7 +169,7 @@ export const Sidebar = () => {
             User List
           </Typography>
 
-          <Typography
+          {/* <Typography
             component={NavLink}
             to="/paymentmethods"
             sx={{
@@ -183,7 +183,7 @@ export const Sidebar = () => {
             }}
           >
             Payment Method
-          </Typography>
+          </Typography> */}
 
           <Typography
             component={NavLink}

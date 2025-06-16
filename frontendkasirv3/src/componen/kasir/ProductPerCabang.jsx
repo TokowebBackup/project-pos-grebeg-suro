@@ -215,7 +215,7 @@ const ProductPerCabang = () => {
         await processQrisPayment(totalOrder);
       } else if (selectedPaymentMethod === 'qris-manual') {
         setPaymentMethods('Qris Manual');
-        await processQrisManualPayment(totalOrder);
+        await handleQrisManualPayment(totalOrder);
       }
     } catch (err) {
       console.error(err);
@@ -460,204 +460,144 @@ const ProductPerCabang = () => {
 
 
   // **Render QR Code**
-  const processQrisManualPayment = async (total) => {
+  const processPaymentQrisManual = async (rawTotalPayment) => {
+    const totalPayment = parseFloat(rawTotalPayment);
+    const customerCashValue = totalPayment;
+    const change = customerCashValue - totalPayment;
+
+    console.log({
+      totalPayment,
+      customerCashValue,
+      change
+    });
+
     try {
-      const response = await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
-        pembayaran: "qris",
+      await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
+        pembayaran: "cash",
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
         items: orders.map((order) => ({
           baranguuid: order.id,
           jumlahbarang: order.quantity,
         })),
       }, { withCredentials: true });
 
-      const { qris_data, transaksi } = response.data?.data || {};
-      const qrString = qris_data?.qr_string;
-      const orderId = transaksi?.order_id;
-      const generatedImageUrl = qris_data?.generated_image_url;
+      setReceiptData({
+        totalPayment,
+        paymentMethod: "Qris Manual",
+        customerName,
+        customerPhone,
+        customerEmail,
+        customerCash: customerCashValue,
+        change,
+        items: orders.map((order) => ({
+          id: order.id,
+          name: order.name,
+          price: order.price,
+          quantity: order.quantity,
+        })),
+      });
 
-      if (!qrString || !orderId) {
-        Swal.fire("Terjadi kesalahan", "Data QRIS tidak tersedia", "error");
-        return;
-      }
-      setPaymentDialogOpen(false);
+      updateProductStock(orders);
+
       Swal.fire({
-        title: "Scan QRIS",
+        title: "Pembayaran Berhasil",
         html: `
-            <div class="text-center">
-              <p style="font-size: 16px; margin: 10px 0;">
-            <strong>Total Pembayaran:</strong> Rp ${formatCurrency(total)}
-              </p>
-              <p style="font-size: 14px; color: #666; margin: 10px 0;">
-                Order ID: ${orderId}
-              </p>
-              <p style="font-size: 14px; color: #444;">
-                Silakan scan kode QR menggunakan aplikasi e-wallet Anda.
-              </p>
-              <img src="${generatedImageUrl}" alt="QRIS Code" style="max-width: 256px; height: auto;"/>
-            </div>
-          `,
-        showConfirmButton: true,
-        confirmButtonText: "Tutup",
-        width: 600,
-        showCloseButton: true,
+        <p>Total: Rp ${formatCurrency(totalPayment)}</p>
+        <p>Dibayar: Rp ${formatCurrency(customerCashValue)}</p>
+        <p>Kembalian: Rp ${formatCurrency(change)}</p>
+      `,
+        icon: "success",
       });
-      startPaymentStatusPolling(orderId, () => {
-        setReceiptData({
-          total,
-          paymentMethod: "Qris",
-          customerName,
-          items: orders.map((order) => ({
-            id: order.id,
-            name: order.name,
-            price: order.price,
-            quantity: order.quantity,
-          })),
-        });
-        setReceiptDialogOpen(true);
-        setOrders([]);
-      });
+
+      setPaymentDialogOpen(false);
+      setReceiptDialogOpen(true);
+      setOrders([]);
+      setCustomerName('');
+      setCustomerPhone('');
+      setCustomerEmail('');
+      setCustomerCash('');
     } catch (error) {
-      console.error("Error processing QRIS payment:", error);
-      Swal.fire("Terjadi kesalahan", "Gagal memproses pembayaran QRIS", "error");
+      console.error('Error saat menyimpan transaksi:', error);
+      Swal.fire("Terjadi kesalahan", "Gagal menyimpan transaksi", "error");
     }
   };
 
-  // const processPaymentQrisManual = async (rawTotalPayment) => {
-  //   const totalPayment = parseFloat(rawTotalPayment);
-  //   const customerCashValue = totalPayment;
-  //   const change = customerCashValue - totalPayment;
 
-  //   console.log({
-  //     totalPayment,
-  //     customerCashValue,
-  //     change
-  //   });
+  const handleQrisManualPayment = async (totalPayment) => {
+    const defaultMethods = paymentMethods.filter((method) => method.isDefault);
 
-  //   try {
-  //     await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
-  //       pembayaran: "cash",
-  //       customer_name: customerName,
-  //       customer_phone: customerPhone,
-  //       customer_email: customerEmail,
-  //       items: orders.map((order) => ({
-  //         baranguuid: order.id,
-  //         jumlahbarang: order.quantity,
-  //       })),
-  //     }, { withCredentials: true });
+    setPaymentDialogOpen(false)
 
-  //     setReceiptData({
-  //       totalPayment,
-  //       paymentMethod: "Qris Manual",
-  //       customerName,
-  //       customerPhone,
-  //       customerEmail,
-  //       customerCash: customerCashValue,
-  //       change,
-  //       items: orders.map((order) => ({
-  //         id: order.id,
-  //         name: order.name,
-  //         price: order.price,
-  //         quantity: order.quantity,
-  //       })),
-  //     });
+    if (defaultMethods.length === 0) {
+      Swal.fire('Tidak ada metode QRIS default', 'Silakan tambahkan metode pembayaran QRIS', 'error');
+      return;
+    }
 
-  //     updateProductStock(orders);
+    if (defaultMethods.length === 1) {
+      const method = defaultMethods[0];
+      const qrString = `${method.bankName}|${method.accountNumber}|${totalPayment}`;
+      showQrCode(totalPayment, qrString, method.bankName, method.accountNumber);
+    } else {
+      const { value: selectedMethod } = await Swal.fire({
+        title: 'Pilih Metode QRIS',
+        input: 'select',
+        inputOptions: defaultMethods.reduce((options, method) => {
+          options[method.id] = `${method.bankName} - ${method.accountNumber}`;
+          return options;
+        }, {}),
+        inputPlaceholder: 'Pilih metode QRIS',
+        showCancelButton: true,
+      });
 
-  //     Swal.fire({
-  //       title: "Pembayaran Berhasil",
-  //       html: `
-  //       <p>Total: Rp ${formatCurrency(totalPayment)}</p>
-  //       <p>Dibayar: Rp ${formatCurrency(customerCashValue)}</p>
-  //       <p>Kembalian: Rp ${formatCurrency(change)}</p>
-  //     `,
-  //       icon: "success",
-  //     });
+      if (selectedMethod) {
+        const method = defaultMethods.find((m) => m.id.toString() === selectedMethod);
+        const qrString = `${method.bankName}|${method.accountNumber}|${total}`;
+        setLoading(false);
+        showQrCode(totalPayment, qrString, method.bankName, method.accountNumber);
+      }
+    }
+  };
 
-  //     setPaymentDialogOpen(false);
-  //     setReceiptDialogOpen(true);
-  //     setOrders([]);
-  //     setCustomerName('');
-  //     setCustomerPhone('');
-  //     setCustomerEmail('');
-  //     setCustomerCash('');
-  //   } catch (error) {
-  //     console.error('Error saat menyimpan transaksi:', error);
-  //     Swal.fire("Terjadi kesalahan", "Gagal menyimpan transaksi", "error");
-  //   }
-  // };
+  const getTotalPaymentFromOrders = () => {
+    const total = orders.reduce((acc, order) => acc + (order.price * order.quantity || 0), 0);
+    console.log("Calculated Total from Orders:", total); // Debugging
+    return total;
+  };
 
-  // const handleQrisManualPayment = async (totalPayment) => {
-  //   const defaultMethods = paymentMethods.filter((method) => method.isDefault);
 
-  //   setPaymentDialogOpen(false)
-
-  //   if (defaultMethods.length === 0) {
-  //     Swal.fire('Tidak ada metode QRIS default', 'Silakan tambahkan metode pembayaran QRIS', 'error');
-  //     return;
-  //   }
-
-  //   if (defaultMethods.length === 1) {
-  //     const method = defaultMethods[0];
-  //     const qrString = `${method.bankName}|${method.accountNumber}|${totalPayment}`;
-  //     showQrCode(totalPayment, qrString, method.bankName, method.accountNumber);
-  //   } else {
-  //     const { value: selectedMethod } = await Swal.fire({
-  //       title: 'Pilih Metode QRIS',
-  //       input: 'select',
-  //       inputOptions: defaultMethods.reduce((options, method) => {
-  //         options[method.id] = `${method.bankName} - ${method.accountNumber}`;
-  //         return options;
-  //       }, {}),
-  //       inputPlaceholder: 'Pilih metode QRIS',
-  //       showCancelButton: true,
-  //     });
-
-  //     if (selectedMethod) {
-  //       const method = defaultMethods.find((m) => m.id.toString() === selectedMethod);
-  //       const qrString = `${method.bankName}|${method.accountNumber}|${total}`;
-  //       setLoading(false);
-  //       showQrCode(totalPayment, qrString, method.bankName, method.accountNumber);
-  //     }
-  //   }
-  // };
-
-  // const getTotalPaymentFromOrders = () => {
-  //   const total = orders.reduce((acc, order) => acc + (order.price * order.quantity || 0), 0);
-  //   console.log("Calculated Total from Orders:", total); // Debugging
-  //   return total;
-  // };
-
-  // const showQrCode = (totalPayment, qrString, bankName, accountNumber) => {
-  //   Swal.fire({
-  //     title: 'QRIS Manual',
-  //     html: `
-  //     <div style="text-align: center;">
-  //       <p><strong>Bank:</strong> ${bankName}</p>
-  //       <p><strong>Nomor Rekening:</strong> ${accountNumber}</p>
-  //       <div id="qrcode-container" style="display: flex; justify-content: center;"></div>
-  //     </div>
-  //   `,
-  //     showCloseButton: true,
-  //     allowOutsideClick: false,
-  //     allowEscapeKey: false,
-  //     confirmButtonText: 'Tutup',
-  //     didOpen: () => {
-  //       const container = document.getElementById('qrcode-container');
-  //       const root = createRoot(container); // Buat root baru
-  //       root.render(<QRCodeCanvas value={qrString} size={200} />); // Render QRCodeCanvas
-  //     },
-  //     willClose: () => {
-  //       const container = document.getElementById('qrcode-container');
-  //       const totalPayment = getTotalPaymentFromOrders(); // Ambil total dari orders
-  //       console.log("Total Payment:", totalPayment); // Debugging
-  //       processPaymentQrisManual(totalPayment);
-  //       if (container) {
-  //         const root = createRoot(container); // Buat root baru untuk unmount
-  //         root.unmount(); // Unmount komponen
-  //       }
-  //     },
-  //   });
-  // };
+  const showQrCode = (totalPayment, qrString, bankName, accountNumber) => {
+    Swal.fire({
+      title: 'QRIS Manual',
+      html: `
+      <div style="text-align: center;">
+        <p><strong>Bank:</strong> ${bankName}</p>
+        <p><strong>Nomor Rekening:</strong> ${accountNumber}</p>
+        <div id="qrcode-container" style="display: flex; justify-content: center;"></div>
+      </div>
+    `,
+      showCloseButton: true,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      confirmButtonText: 'Tutup',
+      didOpen: () => {
+        const container = document.getElementById('qrcode-container');
+        const root = createRoot(container); // Buat root baru
+        root.render(<QRCodeCanvas value={qrString} size={200} />);
+      },
+      willClose: () => {
+        const container = document.getElementById('qrcode-container');
+        const totalPayment = getTotalPaymentFromOrders();
+        console.log("Total Payment:", totalPayment);
+        processPaymentQrisManual(totalPayment);
+        if (container) {
+          const root = createRoot(container);
+          root.unmount();
+        }
+      },
+    });
+  };
 
 
   // **Polling Status Pembayaran**
@@ -1342,7 +1282,7 @@ const ProductPerCabang = () => {
                 mb: 2
               }}
             >
-              <MenuItem value="qris-manual">QRIS Manual</MenuItem>
+              {/* <MenuItem value="qris-manual">QRIS Manual</MenuItem> */}
               <MenuItem value="qris">QRIS</MenuItem>
               <MenuItem value="cash">Cash</MenuItem>
             </Select>
