@@ -18,6 +18,8 @@ import {
   FormControl,
   Pagination
 } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { UploadProduk } from "./uploadProduk";
@@ -62,21 +64,23 @@ export const Product = () => {
       const filtered = filters.kategori === ""
         ? products
         : products.filter((product) => {
-            console.log('Filtering product:', {
-              productKategoriUuid: product.kategoriuuid,
-              selectedFilter: filters.kategori,
-              match: product.kategoriuuid === filters.kategori
-            });
-            return product.kategoriuuid === filters.kategori;
+          console.log('Filtering product:', {
+            productKategoriUuid: product.kategoriuuid,
+            selectedFilter: filters.kategori,
+            match: product.kategoriuuid === filters.kategori
           });
-      
+          return product.kategoriuuid === filters.kategori;
+        });
+
+      console.log("Product terfilter", filtered);
       console.log('Filtered results:', filtered.length);
-      setFilteredProducts(filtered);
+      const sortedFilteredProducts = filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setFilteredProducts(sortedFilteredProducts);
       setCurrentPage(1);
     }
   }, [filters.kategori, products]);
 
-  
+
   const paginatedProducts = filteredProducts.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -95,7 +99,7 @@ export const Product = () => {
   };
 
   const handleOpen = () => setOpen(true);
-  
+
   const handleClose = () => {
     setOpen(false);
     setFormData({ namabarang: "", harga: "", kategoriuuid: "", file: null });
@@ -174,20 +178,20 @@ export const Product = () => {
     <Box sx={{ padding: 2, overflowX: "auto" }}>
       <Typography variant="h6" gutterBottom>
         <Typography>
-        {user?.role === 'superadmin' && (
-               <UploadProduk />
-            )}
-      
+          {user?.role === 'superadmin' && (
+            <UploadProduk />
+          )}
+
         </Typography>
         Product List
       </Typography>
       <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
-      {user?.role === 'superadmin' && (
-                <Button variant="contained" color="primary" onClick={handleOpen}>
-                Add Product
-              </Button>
-            )}
-     
+        {user?.role === 'superadmin' && (
+          <Button variant="contained" color="primary" onClick={handleOpen}>
+            Add Product
+          </Button>
+        )}
+
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel id="filter-kategori-label">Filter Kategori</InputLabel>
           <Select
@@ -218,9 +222,9 @@ export const Product = () => {
                 <TableCell>Foto</TableCell>
                 <TableCell>Tanggal Dibuat</TableCell>
                 {user?.role === 'superadmin' && (
-               <TableCell>Actions</TableCell>
-            )}
-               
+                  <TableCell>Actions</TableCell>
+                )}
+
               </TableRow>
             </TableHead>
             <TableBody>
@@ -243,24 +247,29 @@ export const Product = () => {
                     {new Date(product.createdAt).toLocaleString()}
                   </TableCell>
                   {user?.role === 'superadmin' && (
-             <TableCell>
-             <Button
-               size="small"
-               color="primary"
-               onClick={() => handleEdit(product)}
-             >
-               Edit
-             </Button>
-             <Button
-               size="small"
-               color="secondary"
-               onClick={() => handleDelete(product.uuid)}
-             >
-               Delete
-             </Button>
-           </TableCell>
-            )}
-                  
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                      <Button
+                        size="small"
+                        color="primary"
+                        sx={{ mr: 1 }}
+                        onClick={() => handleEdit(product)}
+                        startIcon={<EditIcon fontSize="small" />}
+                        variant="outlined"
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => handleDelete(product.uuid)}
+                        startIcon={<DeleteIcon fontSize="small" />}
+                        variant="outlined"
+                      >
+                        Delete
+                      </Button>
+                    </TableCell>
+                  )}
+
                 </TableRow>
               ))}
             </TableBody>

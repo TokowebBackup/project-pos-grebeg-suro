@@ -69,7 +69,7 @@ exports.getTransaksi = async (req, res) => {
       : {};
 
     const transaksi = await Transaksi.findAll({
-      attributes: ['uuid', 'totaljual', 'useruuid', 'tanggal', 'pembayaran', 'status_pembayaran', 'order_id', 'tableId', 'createdAt'],
+      attributes: ['uuid', 'totaljual', 'customer_name', 'customer_phone', 'customer_email', 'useruuid', 'tanggal', 'pembayaran', 'status_pembayaran', 'order_id', 'tableId', 'createdAt'],
       where: whereClause,
       include: [
         {
@@ -463,7 +463,8 @@ exports.getTransaksiCabang = async (req, res) => {
             attributes: ['uuid', 'namacabang']
           }]
         }
-      ]
+      ],
+      order: [['createdAt', 'DESC']]
     });
     const groupedTransaksi = transaksi.reduce((acc, item) => {
       const cabangName = item.User.Cabang?.namacabang || 'Tanpa Cabang';

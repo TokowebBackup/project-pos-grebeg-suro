@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client'; // Impor createRoot
 import { QRCodeCanvas } from 'qrcode.react';
-import QRCode from "qrcode";
 import './Header.css'
 import {
   Box,
@@ -87,6 +88,8 @@ const ProductPerCabang = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileCartOpen, setMobileCartOpen] = useState(false);
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [total, setTotal] = useState(0);
 
   //console.log("User State:", user); 
   const { data: notificationData, error: notificationError, mutate: mutateNotifications } = useSWR(
@@ -147,6 +150,21 @@ const ProductPerCabang = () => {
 
     fetchBranchName();
   }, [navigate]);
+
+  useEffect(() => {
+    const fetchPaymentMethods = async () => {
+      try {
+        const response = await axios.get(`${getApiBaseUrl()}/paymentmethods`, { withCredentials: true });
+        setPaymentMethods(response.data.data);
+      } catch (err) {
+        console.error('Gagal mendapatkan metode pembayaran:', err);
+      }
+    };
+
+    fetchPaymentMethods();
+  }, []);
+
+
   const formatCurrency = (value) => {
     if (typeof value === "string") value = parseFloat(value);
     return typeof value === "number" && !isNaN(value)
@@ -186,15 +204,18 @@ const ProductPerCabang = () => {
       return;
     }
 
-    setIsPaying(true); // ⏳ Mulai loading
+    setIsPaying(true);
 
-    const total = orders.reduce((sum, order) => sum + order.price * order.quantity, 0);
+    const totalOrder = orders.reduce((sum, order) => sum + order.price * order.quantity, 0);
 
     try {
       if (selectedPaymentMethod === "cash") {
-        await processCashPayment(total);
+        await processCashPayment(totalOrder);
       } else if (selectedPaymentMethod === "qris") {
-        await processQrisPayment(total);
+        await processQrisPayment(totalOrder);
+      } else if (selectedPaymentMethod === 'qris-manual') {
+        setPaymentMethods('Qris Manual');
+        await handleQrisManualPayment(totalOrder);
       }
     } catch (err) {
       console.error(err);
@@ -204,15 +225,16 @@ const ProductPerCabang = () => {
   };
 
   // console.log("Receipt Data:", receiptData);
-  const processCashPayment = async (total) => {
-    if (!customerCash || parseFloat(customerCash) < total) {
+  const processCashPayment = async (totalPayment) => {
+
+    if (!customerCash || parseFloat(customerCash) < totalPayment) {
       Swal.fire("Uang tidak mencukupi", "Silakan masukkan jumlah yang benar", "error");
       return;
     }
 
-    const change = parseFloat(customerCash) - total;
+    console.log("Total Payment cash : " + totalPayment)
 
-
+    const change = parseFloat(customerCash) - totalPayment;
 
     try {
       // Kirim data transaksi ke server
@@ -229,7 +251,7 @@ const ProductPerCabang = () => {
 
       // Simpan data transaksi sementara untuk ditampilkan di nota
       setReceiptData({
-        total,
+        totalPayment,
         paymentMethod: "Cash",
         customerName,
         customerPhone,
@@ -250,7 +272,7 @@ const ProductPerCabang = () => {
       // Tampilkan sukses transaksi
       Swal.fire({
         title: "Pembayaran Berhasil",
-        html: `<p>Total: Rp ${formatCurrency(total)}</p><p>Dibayar: Rp ${formatCurrency(parseFloat(customerCash))}</p><p>Kembalian: Rp ${formatCurrency(change)}</p>`,
+        html: `<p>Total: Rp ${formatCurrency(totalPayment)}</p><p>Dibayar: Rp ${formatCurrency(parseFloat(customerCash))}</p><p>Kembalian: Rp ${formatCurrency(change)}</p>`,
         icon: "success",
       });
 
@@ -350,7 +372,7 @@ const ProductPerCabang = () => {
   // };
 
   //-----------------TRANSAKSI KSHUS QRIS(COREAPI)------------------------//
-  const processQrisPayment = async (total) => {
+  const processQrisPayment = async (totalPayment) => {
     try {
       const response = await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
         pembayaran: "qris",
@@ -375,7 +397,7 @@ const ProductPerCabang = () => {
         html: `
           <div class="text-center">
             <p style="font-size: 16px; margin: 10px 0;">
-          <strong>Total Pembayaran:</strong> Rp ${formatCurrency(total)}
+          <strong>Total Pembayaran:</strong> Rp ${formatCurrency(totalPayment)}
             </p>
             <p style="font-size: 14px; color: #666; margin: 10px 0;">
               Order ID: ${orderId}
@@ -396,7 +418,7 @@ const ProductPerCabang = () => {
         updateProductStock(orders);
 
         setReceiptData({
-          total,
+          totalPayment,
           paymentMethod: "Qris",
           customerName,
           items: orders.map((order) => ({
@@ -414,6 +436,7 @@ const ProductPerCabang = () => {
       Swal.fire("Terjadi kesalahan", "Gagal memproses pembayaran QRIS", "error");
     }
   };
+
 
   const updateProductStock = (orderItems) => {
     setProducts(prevProducts => {
@@ -437,6 +460,144 @@ const ProductPerCabang = () => {
 
 
   // **Render QR Code**
+  const processPaymentQrisManual = async (rawTotalPayment) => {
+    const totalPayment = parseFloat(rawTotalPayment);
+    const customerCashValue = totalPayment;
+    const change = customerCashValue - totalPayment;
+
+    console.log({
+      totalPayment,
+      customerCashValue,
+      change
+    });
+
+    try {
+      await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
+        pembayaran: "cash",
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
+        items: orders.map((order) => ({
+          baranguuid: order.id,
+          jumlahbarang: order.quantity,
+        })),
+      }, { withCredentials: true });
+
+      setReceiptData({
+        totalPayment,
+        paymentMethod: "Qris Manual",
+        customerName,
+        customerPhone,
+        customerEmail,
+        customerCash: customerCashValue,
+        change,
+        items: orders.map((order) => ({
+          id: order.id,
+          name: order.name,
+          price: order.price,
+          quantity: order.quantity,
+        })),
+      });
+
+      updateProductStock(orders);
+
+      Swal.fire({
+        title: "Pembayaran Berhasil",
+        html: `
+        <p>Total: Rp ${formatCurrency(totalPayment)}</p>
+        <p>Dibayar: Rp ${formatCurrency(customerCashValue)}</p>
+        <p>Kembalian: Rp ${formatCurrency(change)}</p>
+      `,
+        icon: "success",
+      });
+
+      setPaymentDialogOpen(false);
+      setReceiptDialogOpen(true);
+      setOrders([]);
+      setCustomerName('');
+      setCustomerPhone('');
+      setCustomerEmail('');
+      setCustomerCash('');
+    } catch (error) {
+      console.error('Error saat menyimpan transaksi:', error);
+      Swal.fire("Terjadi kesalahan", "Gagal menyimpan transaksi", "error");
+    }
+  };
+
+
+  const handleQrisManualPayment = async (totalPayment) => {
+    const defaultMethods = paymentMethods.filter((method) => method.isDefault);
+
+    setPaymentDialogOpen(false)
+
+    if (defaultMethods.length === 0) {
+      Swal.fire('Tidak ada metode QRIS default', 'Silakan tambahkan metode pembayaran QRIS', 'error');
+      return;
+    }
+
+    if (defaultMethods.length === 1) {
+      const method = defaultMethods[0];
+      const qrString = `${method.bankName}|${method.accountNumber}|${totalPayment}`;
+      showQrCode(totalPayment, qrString, method.bankName, method.accountNumber);
+    } else {
+      const { value: selectedMethod } = await Swal.fire({
+        title: 'Pilih Metode QRIS',
+        input: 'select',
+        inputOptions: defaultMethods.reduce((options, method) => {
+          options[method.id] = `${method.bankName} - ${method.accountNumber}`;
+          return options;
+        }, {}),
+        inputPlaceholder: 'Pilih metode QRIS',
+        showCancelButton: true,
+      });
+
+      if (selectedMethod) {
+        const method = defaultMethods.find((m) => m.id.toString() === selectedMethod);
+        const qrString = `${method.bankName}|${method.accountNumber}|${total}`;
+        setLoading(false);
+        showQrCode(totalPayment, qrString, method.bankName, method.accountNumber);
+      }
+    }
+  };
+
+  const getTotalPaymentFromOrders = () => {
+    const total = orders.reduce((acc, order) => acc + (order.price * order.quantity || 0), 0);
+    console.log("Calculated Total from Orders:", total); // Debugging
+    return total;
+  };
+
+
+  const showQrCode = (totalPayment, qrString, bankName, accountNumber) => {
+    Swal.fire({
+      title: 'QRIS Manual',
+      html: `
+      <div style="text-align: center;">
+        <p><strong>Bank:</strong> ${bankName}</p>
+        <p><strong>Nomor Rekening:</strong> ${accountNumber}</p>
+        <div id="qrcode-container" style="display: flex; justify-content: center;"></div>
+      </div>
+    `,
+      showCloseButton: true,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      confirmButtonText: 'Tutup',
+      didOpen: () => {
+        const container = document.getElementById('qrcode-container');
+        const root = createRoot(container); // Buat root baru
+        root.render(<QRCodeCanvas value={qrString} size={200} />); // Render QRCodeCanvas
+      },
+      willClose: () => {
+        const container = document.getElementById('qrcode-container');
+        const totalPayment = getTotalPaymentFromOrders(); // Ambil total dari orders
+        console.log("Total Payment:", totalPayment); // Debugging
+        processPaymentQrisManual(totalPayment);
+        if (container) {
+          const root = createRoot(container); // Buat root baru untuk unmount
+          root.unmount(); // Unmount komponen
+        }
+      },
+    });
+  };
 
 
   // **Polling Status Pembayaran**
@@ -472,7 +633,7 @@ const ProductPerCabang = () => {
   };
   const ReceiptDialog = () => {
     const items = Array.isArray(receiptData?.items) ? receiptData.items : [];
-    const totalKeseluruhan = receiptData?.total || 0;
+    const totalKeseluruhan = receiptData?.totalPayment || 0;
     const change = receiptData?.change || 0;
     const customerName = receiptData?.customerName || "Tidak Diketahui";
     const customerPhone = receiptData?.customerPhone || "-";
@@ -496,7 +657,7 @@ const ProductPerCabang = () => {
             <Divider style={{ margin: "10px 0" }} />
             <List>
               {items.map((order, index) => (
-                <ListItem key={order.id || index} style={{ padding: "4px 0" }}>
+                <ListItem key={order.order_id || index} style={{ padding: "4px 0" }}>
                   <ListItemText
                     primary={order.name || "Nama barang tidak tersedia"}
                     secondary={`Rp ${order.price.toLocaleString()} x ${order.quantity || 0}`}
@@ -794,6 +955,7 @@ const ProductPerCabang = () => {
           fullWidth
           onClick={() => {
             setPaymentDialogOpen(true);
+            setTotal(orders.reduce((sum, order) => sum + order.price * order.quantity, 0).toLocaleString())
             if (isMobile) setMobileCartOpen(false);
           }}
           sx={{
@@ -1120,6 +1282,7 @@ const ProductPerCabang = () => {
                 mb: 2
               }}
             >
+              <MenuItem value="qris-manual">QRIS Manual</MenuItem>
               <MenuItem value="qris">QRIS</MenuItem>
               <MenuItem value="cash">Cash</MenuItem>
             </Select>
@@ -1151,6 +1314,19 @@ const ProductPerCabang = () => {
                   sx={{ mb: 2 }}
                   variant="outlined"
                 />
+
+                {
+                  selectedPaymentMethod === "qris-manual" && (
+                    <TextField
+                      fullWidth
+                      label="Total"
+                      value={total}
+                      sx={{ mb: 2 }}
+                      variant="outlined"
+                      disabled={selectedPaymentMethod === 'qris-manual'}
+                    />
+                  )
+                }
               </>
             )}
 

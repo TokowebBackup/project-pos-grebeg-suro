@@ -17,6 +17,8 @@ import {
   TableContainer,
   Paper,
 } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import axios from "axios";
 
 const getApiBaseUrl = () => {
@@ -30,8 +32,7 @@ const fetcher = (url) => axios.get(url).then((res) => res.data.data);
 function UserList() {
   const { user } = useSelector((state) => state.auth);
   const endpoint = user?.role === "superadmin" ? "/getuser" : "/getusercabang";
-  const { data: users, error: userError } = useSWR(user ? `${getApiBaseUrl()}${endpoint}` : null, fetcher);  
-  // const { data: users, error: userError } = useSWR(`${getApiBaseUrl()}/getuser`, fetcher);
+  const { data: users, error: userError } = useSWR(user ? `${getApiBaseUrl()}${endpoint}` : null, fetcher);
   const { data: cabangList, error: cabangError } = useSWR(`${getApiBaseUrl()}/cabang`, fetcher);
 
   const [openModal, setOpenModal] = useState(false);
@@ -44,6 +45,7 @@ function UserList() {
     role: "",
     cabanguuid: "",
   });
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleOpenModal = (user = null) => {
     if (user) {
@@ -103,41 +105,69 @@ function UserList() {
   if (userError || cabangError) return <Typography>Error loading data.</Typography>;
   if (!users || !cabangList) return <Typography>Loading...</Typography>;
 
+  // Filter users based on search term
+  const filteredUsers = users.filter(user =>
+    user.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
     <Box sx={{
-      p: { xs: 0, sm: 0 }, // Responsive padding
+      p: { xs: 0, sm: 0 },
       backgroundColor: "#f4f6f8",
       minHeight: "100vh",
       display: "flex",
       overflowX: 'auto',
       flexDirection: "column",
     }}>
-      <Card sx={{ 
-        padding: { xs: 0, sm: 0 }, // Responsive card padding
+      <Card sx={{
+        padding: { xs: 0, sm: 0 },
         flex: 1,
         width: "100%",
         overflowX: 'auto',
       }}>
         <Box sx={{
+          pt: { xs: 4, sm: 2 },
           mb: 2,
+          width: "90%",
           display: "flex",
-          justifyContent: "flex-end",
+          flexDirection: "column",
+          alignItems: "flex-start",
           overflowX: 'auto',
         }}>
-          <Box>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleOpenModal()}
-          >
-            Add User
-          </Button>
+          <Typography variant="h4" gutterBottom>
+            User Lists
+          </Typography>
+          <Typography variant="subtitle1" gutterBottom>
+            Total Users: {filteredUsers.length}
+          </Typography>
+          <Box sx={{
+            mb: 2,
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            overflowX: 'auto',
+            width: "100%",
+          }}>
+            <TextField
+              variant="outlined"
+              placeholder="Search by username"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              size="small"
+              sx={{ width: '300px' }}
+            />
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => handleOpenModal()}
+            >
+              Add User
+            </Button>
           </Box>
         </Box>
 
-        {/* Responsive Table Container */}
-        <TableContainer 
-          component={Paper} 
+        <TableContainer
+          component={Paper}
           sx={{
             maxWidth: '100%',
             overflowX: 'auto',
@@ -156,14 +186,10 @@ function UserList() {
             },
           }}
         >
-          <Table sx={{
-            minWidth: {
-            
-            }
-          }}>
+          <Table>
             <TableHead>
               <TableRow>
-              <TableCell sx={{ whiteSpace: 'nowrap' }}>No</TableCell>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>No</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>Username</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>Role</TableCell>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>Cabang</TableCell>
@@ -171,28 +197,35 @@ function UserList() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {users.map((user, index) => (
-                <TableRow key={user.uuid}>
+              {filteredUsers.map((userItem, index) => (
+                <TableRow key={userItem.uuid}>
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>{index + 1}</TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{user.username}</TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{user.role}</TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{user.Cabang?.namacabang || "N/A"}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{userItem.username}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{userItem.role}</TableCell>
+                  <TableCell sx={{ whiteSpace: 'nowrap' }}>{userItem.Cabang?.namacabang || "N/A"}</TableCell>
                   <TableCell sx={{ whiteSpace: 'nowrap' }}>
                     <Button
                       color="primary"
-                      onClick={() => handleOpenModal(user)}
+                      onClick={() => handleOpenModal(userItem)}
                       sx={{ mr: 1 }}
-                      size="small" // Smaller buttons on mobile
+                      size="small"
+                      variant="outlined"
+                      startIcon={<EditIcon fontSize="small" />}
                     >
                       Edit
                     </Button>
-                    <Button 
-                      color="error" 
-                      onClick={() => handleDeleteUser(user.uuid)}
-                      size="small" // Smaller buttons on mobile
-                    >
-                      Delete
-                    </Button>
+                    {/* Check if the user is not the currently logged-in user before showing the delete button */}
+                    {userItem.uuid !== user.uuid && (
+                      <Button
+                        color="error"
+                        onClick={() => handleDeleteUser(userItem.uuid)}
+                        size="small"
+                        variant="outlined"
+                        startIcon={<DeleteIcon fontSize="small" />}
+                      >
+                        Delete
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
@@ -202,18 +235,18 @@ function UserList() {
 
         {/* Modal */}
         <Modal open={openModal} onClose={handleCloseModal}>
-         <Box
-                   sx={{
-                     position: "absolute",
-                     top: "50%",
-                     left: "50%",
-                     transform: "translate(-50%, -50%)",
-                     width: 250,
-                     bgcolor: "background.paper",
-                     boxShadow: 24,
-                     p: 4,
-                   }}
-                 >
+          <Box
+            sx={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              width: 250,
+              bgcolor: "background.paper",
+              boxShadow: 24,
+              p: 4,
+            }}
+          >
             <Typography variant="h6" mb={2}>
               {isEditing ? "Edit User" : "Add New User"}
             </Typography>
@@ -225,7 +258,7 @@ function UserList() {
               value={currentUser.username}
               onChange={handleFormChange}
               margin="normal"
-              size="small" // Smaller fields on mobile
+              size="small"
             />
             <TextField
               fullWidth
@@ -281,16 +314,16 @@ function UserList() {
             </TextField>
 
             <Box mt={2} display="flex" justifyContent="flex-end">
-              <Button 
-                onClick={handleCloseModal} 
+              <Button
+                onClick={handleCloseModal}
                 sx={{ mr: 1 }}
                 size="small"
               >
                 Cancel
               </Button>
-              <Button 
-                variant="contained" 
-                color="primary" 
+              <Button
+                variant="contained"
+                color="primary"
                 onClick={handleSaveUser}
                 size="small"
               >

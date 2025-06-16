@@ -39,7 +39,7 @@ const mutasiStok = db.define('mutasiStok', {
   },
 }, {
   timestamps: true,
-  //tableName: 'mutasi_stoks',
+  tableName: 'mutasistoks',
 });
 
 // Menetapkan relasi

@@ -171,6 +171,22 @@ export const Sidebar = () => {
 
           <Typography
             component={NavLink}
+            to="/paymentmethods"
+            sx={{
+              textDecoration: 'none',
+              color: '#cbd5e1',
+              p: 1,
+              borderRadius: 1,
+              display: 'block',
+              '&:hover': { bgcolor: '#374151', color: 'white' },
+              '&.active': { bgcolor: '#374151', color: 'white' },
+            }}
+          >
+            Payment Method
+          </Typography>
+
+          <Typography
+            component={NavLink}
             to="/customerlist"
             sx={{
               textDecoration: 'none',

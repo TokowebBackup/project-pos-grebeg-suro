@@ -5,6 +5,7 @@ import { store } from './app/store';
 import { LoginPage } from './componen/LoginPage';
 import { DashboardPages } from './pages/DashboardPages';
 import { UserListPages } from './pages/UserListPages';
+import { PaymentMethods } from './pages/PaymentMethods';
 import { ProfilePages } from './pages/ProfilePages';
 import { OrderePages } from './pages/OrderePages';
 import { TransactionPages } from './pages/TransactionPages';
@@ -52,6 +53,7 @@ function App() {
           {/* API ADMIN */}
           <Route path="/dashboard" element={<DashboardPages />} />
           <Route path="/userlist" element={<UserListPages />} />
+          <Route path="/paymentmethods" element={<PaymentMethods />} />
           <Route path="/customerlist" element={<CustomerListPages />} />
           <Route path="/profile" element={<ProfilePages />} />
           <Route path="/branch" element={<BranchPages />} />

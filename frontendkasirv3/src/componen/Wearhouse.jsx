@@ -107,6 +107,7 @@ const ModalContent = styled(Box)(({ theme }) => ({
 
 export const Wearhouse = () => {
   const { user, isAuthenticated } = useSelector((state) => state.auth);
+
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [openModal, setOpenModal] = useState(false);
@@ -127,20 +128,22 @@ export const Wearhouse = () => {
     severity: "success"
   });
 
-  const { 
-    data: warehouseStock, 
-    error: warehouseError, 
-    mutate, 
-    isValidating 
+  const {
+    data: warehouseStock,
+    error: warehouseError,
+    mutate,
+    isValidating
   } = useSWR(
     `${getApiBaseUrl()}/getdatawearhouse`,
     fetcher,
     { withCredentials: true }
   );
 
-  const { 
-    data: products, 
-    error: productsError 
+  console.log(warehouseError);
+
+  const {
+    data: products,
+    error: productsError
   } = useSWR(
     `${getApiBaseUrl()}/barang`,
     fetcher,
@@ -175,13 +178,13 @@ export const Wearhouse = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF();
-    
+
     // Add title and date
     doc.setFontSize(16);
     doc.text("Warehouse Stock Report", 14, 15);
     doc.setFontSize(10);
     doc.text(`Generated on: ${new Date().toLocaleString()}`, 14, 25);
-    
+
     // Add filter information if filters are applied
     let yPos = 30;
     if (Object.values(filterOptions).some(value => value !== "")) {
@@ -240,7 +243,6 @@ export const Wearhouse = () => {
     const matchesMinStock = filterOptions.minStock === "" || Number(item.stok_gudang) >= Number(filterOptions.minStock);
     const matchesMaxStock = filterOptions.maxStock === "" || Number(item.stok_gudang) <= Number(filterOptions.maxStock);
     const matchesCategory = filterOptions.category === "" || item.Barang?.Kategori?.namakategori === filterOptions.category;
-    
     return matchesSearch && matchesMinStock && matchesMaxStock && matchesCategory;
   }) : [];
 
@@ -452,7 +454,7 @@ export const Wearhouse = () => {
           <Table sx={{ minWidth: 650 }} aria-label="warehouse stock table">
             <TableHead sx={{ backgroundColor: (theme) => alpha(theme.palette.primary.main, 0.1) }}>
               <TableRow>
-              <TableCell width="5%" sx={{ fontWeight: 'bold' }}>No</TableCell>
+                <TableCell width="5%" sx={{ fontWeight: 'bold' }}>No</TableCell>
                 <TableCell width="40%" sx={{ fontWeight: 'bold' }}>Product Name</TableCell>
                 <TableCell width="15%" sx={{ fontWeight: 'bold' }}>Stock Quantity</TableCell>
                 <TableCell width="20%" sx={{ fontWeight: 'bold' }}>Last Updated</TableCell>
@@ -479,7 +481,7 @@ export const Wearhouse = () => {
                 </TableRow>
               ) : (
                 paginatedStock.map((item, index) => (
-                  <TableRow 
+                  <TableRow
                     key={item.uuid}
                     sx={{ '&:hover': { backgroundColor: alpha('#000', 0.03) } }}
                   >
@@ -489,9 +491,9 @@ export const Wearhouse = () => {
                         {item.Barang?.namabarang || getProductNameByUuid(item.baranguuid)}
                       </Typography>
                       {item.Barang?.Kategori?.namakategori && (
-                        <Chip 
-                          label={item.Barang.Kategori.namakategori} 
-                          size="small" 
+                        <Chip
+                          label={item.Barang.Kategori.namakategori}
+                          size="small"
                           sx={{ mt: 0.5, borderRadius: 1 }}
                         />
                       )}
@@ -515,7 +517,7 @@ export const Wearhouse = () => {
                     </TableCell>
                     <TableCell align="center">
                       <Tooltip title="Edit Stock">
-                        <IconButton 
+                        <IconButton
                           size="small"
                           color="primary"
                           onClick={() => handleOpenModal(item)}
@@ -524,7 +526,7 @@ export const Wearhouse = () => {
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete Entry">
-                        <IconButton 
+                        <IconButton
                           size="small"
                           color="error"
                           onClick={() => handleDelete(item.uuid)}
@@ -539,7 +541,7 @@ export const Wearhouse = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        
+
         {filteredStock.length > itemsPerPage && (
           <Box display="flex" justifyContent="center" mt={3}>
             <Pagination
@@ -613,16 +615,16 @@ export const Wearhouse = () => {
                 />
               </Grid>
               <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2, mt: 2 }}>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   onClick={handleCloseModal}
                   sx={{ borderRadius: 2, px: 3 }}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
-                  variant="contained" 
+                <Button
+                  type="submit"
+                  variant="contained"
                   color="primary"
                   disabled={!formData.baranguuid || !formData.stok_gudang}
                   sx={{ borderRadius: 2, px: 3 }}

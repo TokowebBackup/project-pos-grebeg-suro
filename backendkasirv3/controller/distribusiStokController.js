@@ -101,6 +101,49 @@ exports.getDistribusiStokById = async (req, res) => {
   }
 };
 
+// exports.createDistribusi = async (req, res) => {
+//   if (req.user.role !== 'superadmin') {
+//     return res.status(403).json({ status: false, message: "Akses ditolak. Hanya superadmin yang dapat membuat distribusi stok" });
+//   }
+
+//   const t = await db.transaction();
+//   try {
+//     const { baranguuid, cabanguuid, jumlah } = req.body;
+
+//     if (!baranguuid || !cabanguuid || !jumlah) {
+//       return res.status(400).json({ status: false, message: "Data tidak lengkap" });
+//     }
+
+//     const wearhouse = await Wearhouse.findOne({ where: { baranguuid }, transaction: t });
+//     if (!wearhouse || wearhouse.stok_gudang < jumlah) {
+//       return res.status(400).json({ status: false, message: "Stok di gudang tidak mencukupi" });
+//     }
+
+//     // wearhouse.stok_gudang -= jumlah;
+//     // await wearhouse.save({ transaction: t });
+
+//     // await mutasiStok.create({
+//     //   baranguuid,
+//     //   cabanguuid,
+//     //   jenis_mutasi: 'keluar',
+//     //   jumlah,
+//     //   keterangan: 'Distribusi stok ke cabang'
+//     // }, { transaction: t });
+
+//     const distribusi = await distribusiStok.create({ baranguuid, cabanguuid, jumlah, status: 'pending' }, { transaction: t });
+
+//     await t.commit();
+
+//     return res.status(201).json({ status: true, message: "Distribusi stok berhasil dibuat", data: distribusi });
+
+//   } catch (error) {
+//     await t.rollback();
+//     console.error(error);
+//     return res.status(500).json({ status: false, message: "Terjadi kesalahan pada server" });
+//   }
+// };
+
+// Langsung melakukan mutasi stok seperti yang dilakukan confirm di admin
 exports.createDistribusi = async (req, res) => {
   if (req.user.role !== 'superadmin') {
     return res.status(403).json({ status: false, message: "Akses ditolak. Hanya superadmin yang dapat membuat distribusi stok" });
@@ -119,18 +162,49 @@ exports.createDistribusi = async (req, res) => {
       return res.status(400).json({ status: false, message: "Stok di gudang tidak mencukupi" });
     }
 
-    // wearhouse.stok_gudang -= jumlah;
-    // await wearhouse.save({ transaction: t });
+    // Kurangi stok di gudang
+    wearhouse.stok_gudang -= jumlah;
+    await wearhouse.save({ transaction: t });
 
-    // await mutasiStok.create({
-    //   baranguuid,
-    //   cabanguuid,
-    //   jenis_mutasi: 'keluar',
-    //   jumlah,
-    //   keterangan: 'Distribusi stok ke cabang'
-    // }, { transaction: t });
+    // Catat mutasi stok keluar
+    await mutasiStok.create({
+      baranguuid,
+      cabanguuid,
+      jenis_mutasi: 'keluar',
+      jumlah,
+      keterangan: 'Distribusi stok ke cabang'
+    }, { transaction: t });
 
-    const distribusi = await distribusiStok.create({ baranguuid, cabanguuid, jumlah, status: 'pending' }, { transaction: t });
+    // Buat entri distribusi dengan status 'diterima'
+    const distribusi = await distribusiStok.create({ baranguuid, cabanguuid, jumlah, status: 'diterima' }, { transaction: t });
+
+    // Cek dan update atau buat entri di tabel BarangCabang
+    const barangCabang = await BarangCabang.findOne({
+      where: { baranguuid, cabanguuid },
+      transaction: t
+    });
+
+    if (!barangCabang) {
+      // Jika tidak ada, buat entri baru
+      await BarangCabang.create({
+        baranguuid,
+        cabanguuid,
+        stok: jumlah
+      }, { transaction: t });
+    } else {
+      // Jika ada, tambahkan jumlah stok
+      barangCabang.stok += Number(jumlah);
+      await barangCabang.save({ transaction: t });
+    }
+
+    // Catat mutasi stok masuk
+    await mutasiStok.create({
+      baranguuid,
+      cabanguuid,
+      jenis_mutasi: 'masuk',
+      jumlah,
+      keterangan: `Distribusi stok dari gudang (ID: ${distribusi.uuid})`
+    }, { transaction: t });
 
     await t.commit();
 
@@ -142,6 +216,8 @@ exports.createDistribusi = async (req, res) => {
     return res.status(500).json({ status: false, message: "Terjadi kesalahan pada server" });
   }
 };
+
+
 
 
 exports.updateDistribusi = async (req, res) => {
@@ -264,6 +340,3 @@ exports.deleteDistribusi = async (req, res) => {
     });
   }
 };
-
-
-

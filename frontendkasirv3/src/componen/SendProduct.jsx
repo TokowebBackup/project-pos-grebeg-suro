@@ -16,14 +16,14 @@ import {
 import axios from "axios";
 import { useSelector } from "react-redux";
 const getApiBaseUrl = () => {
-    const protocol = window.location.protocol === "https:" ? "https" : "http";
-    const baseUrl = process.env.REACT_APP_URL.replace(/^https?:\/\/+/, "");
-    return `${protocol}://${baseUrl}`;
-  };
+  const protocol = window.location.protocol === "https:" ? "https" : "http";
+  const baseUrl = process.env.REACT_APP_URL.replace(/^https?:\/\/+/, "");
+  return `${protocol}://${baseUrl}`;
+};
 
-  
-const fetcher = (url) => axios.get(url,{withCredentials: true}).then((res) => res.data.data);
-  
+
+const fetcher = (url) => axios.get(url, { withCredentials: true }).then((res) => res.data.data);
+
 
 export const SendProduct = () => {
   const [formData, setFormData] = useState({
@@ -70,6 +70,8 @@ export const SendProduct = () => {
         }
       );
 
+      console.log(response)
+
       setAlert({
         open: true,
         message: "Distribusi stok berhasil dibuat",
@@ -111,19 +113,19 @@ export const SendProduct = () => {
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>Pilih Produk</InputLabel>
             <Select
-  name="baranguuid"
-  value={formData.baranguuid}
-  onChange={handleChange}
-  required
-  label="Pilih Produk"
->
-  {Array.isArray(products) ? products.map((product) => (
-    <MenuItem key={product.uuid} value={product.uuid}>
-      {product.namabarang}
-    </MenuItem>
-  )) : <MenuItem disabled>Data tidak tersedia</MenuItem>}
-</Select>
-  
+              name="baranguuid"
+              value={formData.baranguuid}
+              onChange={handleChange}
+              required
+              label="Pilih Produk"
+            >
+              {Array.isArray(products) ? products.map((product) => (
+                <MenuItem key={product.uuid} value={product.uuid}>
+                  {product.namabarang}
+                </MenuItem>
+              )) : <MenuItem disabled>Data tidak tersedia</MenuItem>}
+            </Select>
+
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 2 }}>

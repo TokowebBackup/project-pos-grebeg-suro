@@ -7,12 +7,13 @@ const db = require('../config/database');
 exports.getWearhouseData = async (req, res) => {
     try {
         const userLogin = req.user
-    if(!userLogin){
-      return res.status(401).json({message: 'Anda harus login terlebih dahulu'})
-    }
+        if (!userLogin) {
+            return res.status(401).json({ message: 'Anda harus login terlebih dahulu' })
+        }
         const wearhouses = await Wearhouse.findAll({
-            include: { model: Barang,
-                attributes:['uuid','namabarang','harga','kategoriuuid'],
+            include: {
+                model: Barang,
+                attributes: ['uuid', 'namabarang', 'harga', 'kategoriuuid'],
                 include: { model: Kategori, attributes: ['uuid', 'namakategori'] }
             }
         });
@@ -33,9 +34,9 @@ exports.getWearhouseData = async (req, res) => {
 exports.getWearhouseDataByUuid = async (req, res) => {
     try {
         const userLogin = req.user
-    if(!userLogin){
-      return res.status(401).json({message: 'Anda harus login terlebih dahulu'})
-    }
+        if (!userLogin) {
+            return res.status(401).json({ message: 'Anda harus login terlebih dahulu' })
+        }
         const { uuid } = req.params;
         const wearhouse = await Wearhouse.findOne({
             where: { uuid },
@@ -66,9 +67,9 @@ exports.getWearhouseDataByUuid = async (req, res) => {
 exports.createDataWearhouse = async (req, res) => {
     try {
         const userLogin = req.user
-    if(!userLogin){
-      return res.status(401).json({message: 'Anda harus login terlebih dahulu'})
-    }
+        if (!userLogin) {
+            return res.status(401).json({ message: 'Anda harus login terlebih dahulu' })
+        }
         const { baranguuid, stok_gudang } = req.body;
 
         if (!baranguuid || stok_gudang === undefined) {
@@ -86,7 +87,7 @@ exports.createDataWearhouse = async (req, res) => {
         if (wearhouse) {
             wearhouse.stok_gudang = wearhouse.stok_gudang + jumlahStok;
             await wearhouse.save();
-        }else {
+        } else {
             wearhouse = await Wearhouse.create({ baranguuid, stok_gudang: jumlahStok });
             keterangan = "Barang stok baru";
         }
@@ -97,7 +98,7 @@ exports.createDataWearhouse = async (req, res) => {
             jumlah: jumlahStok,
             keterangan: keterangan
         });
-       // console.log(keterangan)
+        // console.log(keterangan)
 
         return res.status(201).json({ status: true, message: "Data Wearhouse berhasil diperbarui", data: wearhouse });
 
@@ -156,9 +157,9 @@ exports.updateDataWearhouse = async (req, res) => {
 exports.deleteDataWearhouse = async (req, res) => {
     try {
         const userLogin = req.user
-    if(!userLogin){
-      return res.status(401).json({message: 'Anda harus login terlebih dahulu'})
-    }
+        if (!userLogin) {
+            return res.status(401).json({ message: 'Anda harus login terlebih dahulu' })
+        }
         const { uuid } = req.params;
 
         const wearhouse = await Wearhouse.findOne({ where: { uuid } });

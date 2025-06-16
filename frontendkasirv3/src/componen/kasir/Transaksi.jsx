@@ -55,8 +55,8 @@ export const Transaksi = () => {
     };
 
     const SummaryItem = ({ label, value, highlightColor }) => (
-      <Box sx={{ 
-        p: 2, 
+      <Box sx={{
+        p: 2,
         borderRadius: 1,
         backgroundColor: highlightColor || 'background.paper',
         boxShadow: 1
@@ -72,15 +72,15 @@ export const Transaksi = () => {
 
     return (
       <Card sx={{ mb: 3 }}>
-        <CardHeader 
-          title="Rekap Penjualan Hari Ini" 
+        <CardHeader
+          title="Rekap Penjualan Hari Ini"
           subheader={`Tanggal: ${format(new Date(tanggal), 'dd MMMM yyyy')}`}
         />
         <Divider />
         <Box sx={{ p: 2 }}>
           <Grid container spacing={2}>
             <Grid item xs={12}>
-              <SummaryItem 
+              <SummaryItem
                 label="Total Penjualan Success"
                 value={rekapData.totalPenjualanSuccess}
                 highlightColor="#e3f2fd"
@@ -92,13 +92,13 @@ export const Transaksi = () => {
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  <SummaryItem 
+                  <SummaryItem
                     label="Cash Success"
                     value={rekapData.totalPenjualanCashSuccess}
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <SummaryItem 
+                  <SummaryItem
                     label="Cash Pending"
                     value={rekapData.totalPenjualanCashPending}
                   />
@@ -111,13 +111,13 @@ export const Transaksi = () => {
               </Typography>
               <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  <SummaryItem 
+                  <SummaryItem
                     label="QRIS Success"
                     value={rekapData.totalPenjualanQrisSuccess}
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <SummaryItem 
+                  <SummaryItem
                     label="QRIS Pending"
                     value={rekapData.totalPenjualanQrisPending}
                   />
@@ -125,7 +125,7 @@ export const Transaksi = () => {
               </Grid>
             </Grid>
             <Grid item xs={12}>
-              <SummaryItem 
+              <SummaryItem
                 label="Total Penjualan Pending"
                 value={rekapData.totalPenjualanPending}
                 highlightColor="#fff3e0"
@@ -246,55 +246,55 @@ export const Transaksi = () => {
         <CardHeader title="Rekap Harian" />
         <Divider />
         <Box sx={{ overflowX: 'auto', width: '100%' }}>
-  <Table>
-    <TableHead>
-      <TableRow>
-        <TableCell>Order ID</TableCell>
-        <TableCell>Total Jual</TableCell>
-        <TableCell>Status Pembayaran</TableCell>
-        <TableCell>Pembayaran</TableCell>
-        <TableCell>Tanggal</TableCell>
-        <TableCell>Dibuat</TableCell>
-      </TableRow>
-    </TableHead>
-    <TableBody>
-      {rekapError ? (
-        <TableRow>
-          <TableCell colSpan={6} align="center">
-            <Typography color="error">Gagal memuat data rekap harian.</Typography>
-          </TableCell>
-        </TableRow>
-      ) : isValidating || !rekapData ? (
-        <TableRow>
-          <TableCell colSpan={6} align="center">
-            <CircularProgress size={24} />
-          </TableCell>
-        </TableRow>
-      ) : (
-        rekapData?.data?.transaksiSuccess.map((transaction) => (
-          <TableRow
-            key={transaction.uuid}
-            hover
-            style={{ cursor: 'pointer' }}
-            onClick={() => handleRowClick(transaction)}
-          >
-            <TableCell>{transaction.order_id}</TableCell>
-            <TableCell>{transaction.totaljual}</TableCell>
-            <TableCell>
-              <Chip
-                label={statusMap[transaction.status_pembayaran]?.label || 'Unknown'}
-                color={statusMap[transaction.status_pembayaran]?.color || 'default'}
-              />
-            </TableCell>
-            <TableCell>{transaction.pembayaran}</TableCell>
-            <TableCell>{format(new Date(transaction.tanggal), 'dd/MM/yyyy')}</TableCell>
-            <TableCell>{format(new Date(transaction.createdAt), 'HH:mm:ss')}</TableCell>
-          </TableRow>
-        ))
-      )}
-    </TableBody>
-  </Table>
-</Box>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Order ID</TableCell>
+                <TableCell>Total Jual</TableCell>
+                <TableCell>Status Pembayaran</TableCell>
+                <TableCell>Pembayaran</TableCell>
+                <TableCell>Tanggal</TableCell>
+                <TableCell>Dibuat</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rekapError ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <Typography color="error">Gagal memuat data rekap harian.</Typography>
+                  </TableCell>
+                </TableRow>
+              ) : isValidating || !rekapData ? (
+                <TableRow>
+                  <TableCell colSpan={6} align="center">
+                    <CircularProgress size={24} />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                rekapData?.data?.transaksiSuccess.map((transaction) => (
+                  <TableRow
+                    key={transaction.uuid}
+                    hover
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => handleRowClick(transaction)}
+                  >
+                    <TableCell>{transaction.order_id}</TableCell>
+                    <TableCell>{transaction.totaljual}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={statusMap[transaction.status_pembayaran]?.label || 'Unknown'}
+                        color={statusMap[transaction.status_pembayaran]?.color || 'default'}
+                      />
+                    </TableCell>
+                    <TableCell>{transaction.pembayaran}</TableCell>
+                    <TableCell>{format(new Date(transaction.tanggal), 'dd/MM/yyyy')}</TableCell>
+                    <TableCell>{format(new Date(transaction.createdAt), 'HH:mm:ss')}</TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </Box>
 
       </Card>
 
@@ -305,6 +305,15 @@ export const Transaksi = () => {
           <Box sx={{ p: 2 }}>
             <Typography variant="body1">
               <strong>Nama Kasir:</strong> {selectedTransaction.User?.username || 'Tidak diketahui'}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Nama Customer:</strong> {selectedTransaction.customer_name || '-'}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Telepon Customer:</strong> {selectedTransaction.customer_phone || '-'}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Email Customer:</strong> {selectedTransaction.customer_email || '-'}
             </Typography>
             <Typography variant="body1">
               <strong>Cabang:</strong> {selectedTransaction.User?.Cabang?.namacabang || 'Tidak diketahui'}

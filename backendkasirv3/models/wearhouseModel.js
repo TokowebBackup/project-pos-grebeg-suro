@@ -23,7 +23,7 @@ const Wearhouse = db.define('Wearhouse', {
   },
 }, {
   timestamps: true,
-  tableName: 'warehouses'
+  tableName: 'wearhouses'
 });
 
 Wearhouse.belongsTo(Barang, { foreignKey: 'baranguuid' });
