@@ -67,4 +67,24 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 
 ### `npm run build` fails to minify
 
+### htaccess
+```
+Options -MultiViews
+RewriteEngine On
+RewriteBase /
+
+
+
+# Jika file atau folder tidak ditemukan, arahkan ke index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.html [L]
+RewriteEngine On
+
+# Arahkan /webmail  folder instalasi SnappyMail
+RewriteRule ^webmail(/.*)?$ \
+  /usr/local/CyberCP/public/snappymail/index.php?_task=login [L,R=302]
+```  
+
+
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
