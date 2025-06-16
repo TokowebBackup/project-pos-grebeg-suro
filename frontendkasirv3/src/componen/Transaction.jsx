@@ -16,12 +16,15 @@ import Modal from '@mui/material/Modal';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
+import MenuItem from '@mui/material/MenuItem';
 import { TableContainer } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import dayjs from 'dayjs';
-import useSWR from 'swr';
+import useSWR, { mutate } from 'swr'; // Import mutate
 import axios from 'axios';
+import Swal from "sweetalert2";
+
 
 const getApiBaseUrl = () => {
   const protocol = window.location.protocol === 'https:' ? 'https' : 'http';
@@ -65,6 +68,11 @@ export const Transaction = ({ userRole }) => {
   const [filters, setFilters] = useState({ username: '', branch: '', date: '' });
   const [searchQuery, setSearchQuery] = useState(''); // New state for search query
   const itemsPerPage = 10;
+  const paymentStatusOptions = [
+    { value: 'settlement', label: 'Settlement' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'cancel', label: 'Cancel' },
+  ];
 
   if (error) return <div>Error loading transactions.</div>;
   if (!data) {
@@ -158,13 +166,39 @@ export const Transaction = ({ userRole }) => {
     setIsEditing(true);
   };
 
+  // const handleSaveEdit = async () => {
+  //   try {
+  //     await updateTransaction(editData.uuid, editData);
+  //     setIsEditing(false);
+  //     alert("Transaction updated successfully!");
+  //   } catch {
+  //     alert("Failed to update transaction.");
+  //   }
+  // };
+
   const handleSaveEdit = async () => {
     try {
-      await updateTransaction(editData.uuid, editData);
+      await updateTransaction(editData.uuid, {
+        totaljual: editData.totaljual,
+        pembayaran: editData.pembayaran,
+        status_pembayaran: editData.status_pembayaran, // Pastikan status_pembayaran dikirim
+      });
       setIsEditing(false);
-      alert("Transaction updated successfully!");
+
+      // Menampilkan SweetAlert saat update berhasil
+      Swal.fire({
+        icon: 'success',
+        title: 'Success',
+        text: 'Transaction updated successfully!',
+      });
+
+      mutate(`${getApiBaseUrl()}/gettransaksi`);
     } catch {
-      alert("Failed to update transaction.");
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to update transaction.',
+      });
     }
   };
 
@@ -448,13 +482,27 @@ export const Transaction = ({ userRole }) => {
             value={editData.pembayaran}
             onChange={(e) => setEditData({ ...editData, pembayaran: e.target.value })}
           />
-          <TextField
+          {/* <TextField
             label="Payment Status"
             fullWidth
             margin="normal"
             value={editData.status_pembayaran}
             onChange={(e) => setEditData({ ...editData, status_pembayaran: e.target.value })}
-          />
+          /> */}
+          <TextField
+            label="Payment Status"
+            select
+            fullWidth
+            margin="normal"
+            value={editData.status_pembayaran}
+            onChange={(e) => setEditData({ ...editData, status_pembayaran: e.target.value })}
+          >
+            {paymentStatusOptions.map((option) => (
+              <MenuItem key={option.value} value={option.value}>
+                {option.label}
+              </MenuItem>
+            ))}
+          </TextField>
           <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
             <Button variant="contained" onClick={handleSaveEdit}>
               Save

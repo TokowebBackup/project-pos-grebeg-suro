@@ -838,8 +838,6 @@ exports.createTransaksi = async (req, res) => {
 //   }
 // };
 
-
-
 exports.updateTransaksi = async (req, res) => {
   const { uuid } = req.params;
   const { pembayaran, items } = req.body;
@@ -855,9 +853,14 @@ exports.updateTransaksi = async (req, res) => {
         message: "Transaksi tidak ditemukan"
       });
     }
+    if (req.body.status_pembayaran) {
+      transaksi.status_pembayaran = req.body.status_pembayaran;
+    }
+
     if (pembayaran) {
       transaksi.pembayaran = pembayaran;
-      transaksi.status_pembayaran = pembayaran === 'cash' ? 'settlement' : 'pending';
+      // transaksi.status_pembayaran = pembayaran === 'cash' ? 'settlement' : 'pending';
+      // transaksi.status_pembayaran = pembayaran === 'cash' ? 'settlement' : 'pending';
     }
 
     if (items && Array.isArray(items) && items.length > 0) {
@@ -925,6 +928,7 @@ exports.updateTransaksi = async (req, res) => {
     });
   }
 };
+
 exports.deleteTransaksi = async (req, res) => {
   const { uuid } = req.params;
   const t = await db.transaction();
