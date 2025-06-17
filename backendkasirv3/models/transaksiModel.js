@@ -49,7 +49,7 @@ const Transaksi = sequelize.define('Transaksi', {
     allowNull: true
   },
   pembayaran: {
-    type: DataTypes.ENUM('qris', 'cash'),
+    type: DataTypes.ENUM('qris', 'qris manual', 'cash'),
     allowNull: false,
   },
   oredermeja: {

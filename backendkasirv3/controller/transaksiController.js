@@ -491,7 +491,6 @@ exports.getTransaksiCabang = async (req, res) => {
 //------------TRANSAKSI QRIS-------------//
 exports.createTransaksi = async (req, res) => {
   const t = await db.transaction();
-
   try {
     const { pembayaran, items } = req.body;
     const customerName = req.body.customer_name || req.body.customerName;
@@ -587,6 +586,9 @@ exports.createTransaksi = async (req, res) => {
     if (pembayaran === 'qris') {
       const parameter = {
         payment_type: "qris",
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
         transaction_details: {
           order_id: orderId,
           gross_amount: parseInt(totaljual)

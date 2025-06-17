@@ -260,7 +260,7 @@ exports.createTransaksiCabang = async (req, res) => {
             cabanguuid: user.cabanguuid,
             totaljual,
             pembayaran,
-            status_pembayaran: pembayaran === 'cash' ? 'settlement' : 'pending',
+            status_pembayaran: pembayaran === 'cash' || pembayaran === 'qris manual' ? 'settlement' : 'pending',
             tanggal: new Date(),
         }, { transaction: t });
         
@@ -274,7 +274,7 @@ exports.createTransaksiCabang = async (req, res) => {
           }, { transaction: t });
         }));
         
-        if (pembayaran === 'cash') {
+        if (pembayaran === 'cash' || pembayaran === 'qris manual') {
           await Promise.all(stokKurangi.map(async (stok) => {
             console.log(`⏳ Mengurangi stok: Barang UUID: ${stok.baranguuid}, Cabang UUID: ${stok.cabanguuid}, Jumlah: ${stok.jumlah}`);
         

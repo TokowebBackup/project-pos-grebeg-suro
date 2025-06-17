@@ -103,6 +103,14 @@ const ProductPerCabang = () => {
     }
   );
   const notificationCount = notificationData?.data?.length || 0;
+  const fetchPaymentMethods = async () => {
+    try {
+      const response = await axios.get(`${getApiBaseUrl()}/paymentmethods`, { withCredentials: true });
+      setPaymentMethods(response.data.data);
+    } catch (err) {
+      console.error('Gagal mendapatkan metode pembayaran:', err);
+    }
+  };
 
   const handleNotificationClick = () => {
     navigate('/notification');
@@ -137,6 +145,7 @@ const ProductPerCabang = () => {
 
     fetchProductsAndCategories();
   }, []);
+
   useEffect(() => {
     const fetchBranchName = async () => {
       try {
@@ -153,15 +162,6 @@ const ProductPerCabang = () => {
   }, [navigate]);
 
   useEffect(() => {
-    const fetchPaymentMethods = async () => {
-      try {
-        const response = await axios.get(`${getApiBaseUrl()}/paymentmethods`, { withCredentials: true });
-        setPaymentMethods(response.data.data);
-      } catch (err) {
-        console.error('Gagal mendapatkan metode pembayaran:', err);
-      }
-    };
-
     fetchPaymentMethods();
   }, []);
 
@@ -378,6 +378,9 @@ const ProductPerCabang = () => {
     try {
       const response = await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
         pembayaran: "qris",
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
         items: orders.map((order) => ({
           baranguuid: order.id,
           jumlahbarang: order.quantity,
@@ -477,7 +480,7 @@ const ProductPerCabang = () => {
 
     try {
       await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
-        pembayaran: "cash",
+        pembayaran: "qris manual",
         customer_name: customerName,
         customer_phone: customerPhone,
         customer_email: customerEmail,
@@ -515,6 +518,8 @@ const ProductPerCabang = () => {
         icon: "success",
       });
 
+      fetchPaymentMethods();
+
       setPaymentDialogOpen(false);
       setReceiptDialogOpen(true);
       setSelectedPaymentMethod('');
@@ -523,6 +528,7 @@ const ProductPerCabang = () => {
       setCustomerPhone('');
       setCustomerEmail('');
       setCustomerCash('');
+
     } catch (error) {
       console.error('Error saat menyimpan transaksi:', error);
       Swal.fire("Terjadi kesalahan", "Gagal menyimpan transaksi", "error");
@@ -567,35 +573,6 @@ const ProductPerCabang = () => {
     }
   };
 
-  const createOrderId = async (totalPayment) => {
-    try {
-      const response = await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
-        pembayaran: "cash",
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        customer_email: customerEmail,
-        items: orders.map((order) => ({
-          baranguuid: order.id,
-          jumlahbarang: order.quantity,
-        })),
-      }, { withCredentials: true });
-
-      const orderId = response.data.data.transaksi.order_id;
-      return orderId;
-    } catch (error) {
-      console.error('Error saat membuat order ID:', error);
-      return null;
-    }
-  };
-
-
-
-  const getTotalPaymentFromOrders = () => {
-    const total = orders.reduce((acc, order) => acc + (order.price * order.quantity || 0), 0);
-    console.log("Calculated Total from Orders:", total); // Debugging
-    return total;
-  };
-
 
   const showQrCode = (totalPayment, qrImageUrl, orderId) => {
     Swal.fire({
@@ -624,6 +601,32 @@ const ProductPerCabang = () => {
     });
   };
 
+  const createOrderId = async (totalPayment) => {
+    try {
+      const response = await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
+        pembayaran: "cash",
+        customer_name: customerName,
+        customer_phone: customerPhone,
+        customer_email: customerEmail,
+        items: orders.map((order) => ({
+          baranguuid: order.id,
+          jumlahbarang: order.quantity,
+        })),
+      }, { withCredentials: true });
+
+      const orderId = response.data.data.transaksi.order_id;
+      return orderId;
+    } catch (error) {
+      console.error('Error saat membuat order ID:', error);
+      return null;
+    }
+  };
+
+  const getTotalPaymentFromOrders = () => {
+    const total = orders.reduce((acc, order) => acc + (order.price * order.quantity || 0), 0);
+    console.log("Calculated Total from Orders:", total); // Debugging
+    return total;
+  };
 
 
   // **Polling Status Pembayaran**
