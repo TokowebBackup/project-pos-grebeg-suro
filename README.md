@@ -60,7 +60,7 @@ SELECT CONCAT('DROP TABLE IF EXISTS `', table_name, '`;')
 FROM information_schema.tables 
 WHERE table_schema = 'databasekamu';
 
-mysql -u grebeg_suro -p databasekasirbaru < /home/hallaw/databasekasirbaru.sql
+mysql -u sql_user -p sql_db < /home/hallaw/databasekasirbaru.sql
 ```
 
 ```bash
