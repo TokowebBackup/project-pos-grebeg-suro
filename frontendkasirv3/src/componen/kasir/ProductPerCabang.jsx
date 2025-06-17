@@ -236,6 +236,7 @@ const ProductPerCabang = () => {
     console.log("Total Payment cash : " + totalPayment)
 
     const change = parseFloat(customerCash) - totalPayment;
+    const orderId = await createOrderId(totalPayment);
 
     try {
       // Kirim data transaksi ke server
@@ -258,6 +259,7 @@ const ProductPerCabang = () => {
         customerPhone,
         customerEmail,
         customerCash: parseFloat(customerCash),
+        orderId: orderId,
         change,
         items: orders.map((order) => ({
           id: order.id,
@@ -428,6 +430,7 @@ const ProductPerCabang = () => {
           customerName,
           customerPhone,
           customerEmail,
+          orderId: orderId,
           items: orders.map((order) => ({
             id: order.id,
             name: order.name,
@@ -473,7 +476,7 @@ const ProductPerCabang = () => {
 
 
   // **Render QR Code**
-  const processPaymentQrisManual = async (rawTotalPayment) => {
+  const processPaymentQrisManual = async (rawTotalPayment, orderId) => {
     const totalPayment = parseFloat(rawTotalPayment);
     const customerCashValue = totalPayment;
     const change = customerCashValue - totalPayment;
@@ -497,6 +500,7 @@ const ProductPerCabang = () => {
         customerPhone,
         customerEmail,
         customerCash: customerCashValue,
+        orderId: orderId,
         change,
         items: orders.map((order) => ({
           id: order.id,
@@ -596,7 +600,7 @@ const ProductPerCabang = () => {
       confirmButtonText: 'Tutup',
       willClose: () => {
         // Panggil fungsi untuk memproses pembayaran QRIS manual
-        processPaymentQrisManual(totalPayment);
+        processPaymentQrisManual(totalPayment, orderId);
       }
     });
   };
@@ -774,7 +778,6 @@ const ProductPerCabang = () => {
 
     const change = parseFloat(customerCash || 0) - total;
 
-
     const receiptContent = `
       <!DOCTYPE html>
       <html>
@@ -841,6 +844,7 @@ const ProductPerCabang = () => {
         <body>
           <div class="header">
            <p class="store-name">${user?.cabang?.namacabang || "Cabang Tidak Diketahui"}</p>
+            <p class="customer-name">Order ID : ${receiptData?.orderId || "Cabang Tidak Diketahui"}</p>
             <p class="customer-name">Nama Pemesan: ${receiptData?.customerName || "Tidak Diketahui"}</p>
             <p class="customer-name">Telepon Pemesan: ${receiptData?.customerPhone || "Tidak Diketahui"}</p>
             <p class="date">${formatDate(new Date())}</p>
