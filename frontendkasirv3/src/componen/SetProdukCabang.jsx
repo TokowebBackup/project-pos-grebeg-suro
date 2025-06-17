@@ -60,7 +60,7 @@ export const SetProdukCabang = () => {
       .map((item) => item.baranguuid);
     return products?.filter((product) => !existingProductIds.includes(product.uuid)) || [];
   };
-  
+
   const handleAddProduct = async () => {
     try {
       await axios.post(`${getApiBaseUrl()}/createbarangcabang`, {
@@ -82,12 +82,12 @@ export const SetProdukCabang = () => {
       <Typography variant="h6" marginBottom={2}>
         Kelola Produk Per Cabang
       </Typography>
-      
+
       <Card>
         <Box padding={2}>
-          <Button 
-            variant="contained" 
-            color="primary" 
+          <Button
+            variant="contained"
+            color="primary"
             onClick={() => setModalOpen(true)}
           >
             Tambah Produk ke Cabang
@@ -95,8 +95,8 @@ export const SetProdukCabang = () => {
         </Box>
       </Card>
 
-      <Modal 
-        open={modalOpen} 
+      <Modal
+        open={modalOpen}
         onClose={() => setModalOpen(false)}
         sx={{
           display: 'flex',
@@ -146,7 +146,7 @@ export const SetProdukCabang = () => {
 
           </FormControl>
 
-          
+
 
           <Box marginTop={3} display="flex" gap={2}>
             <Button
@@ -176,7 +176,7 @@ export const SetProdukCabang = () => {
       >
         <Alert severity="error">{error}</Alert>
       </Snackbar>
-      
+
       <Snackbar
         open={!!success}
         autoHideDuration={6000}

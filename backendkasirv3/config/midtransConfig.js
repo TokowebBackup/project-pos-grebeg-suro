@@ -18,7 +18,7 @@ console.log("Ini Client Key:", process.env.CLIENTKEY);
 
 
 const coreApi = new midtransClient.CoreApi({
-  isProduction: true,
+  isProduction: false,
   // serverKey: process.env.SERVERKEY,
   // clientKey: process.env.CLIENTKEY,
   //prod
