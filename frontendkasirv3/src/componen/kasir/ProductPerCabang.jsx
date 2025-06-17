@@ -280,11 +280,12 @@ const ProductPerCabang = () => {
       // Reset data transaksi
       setPaymentDialogOpen(false);
       setReceiptDialogOpen(true);
-      setOrders([]); // Kosongkan daftar pesanan
-      setCustomerName(''); // Reset nama pembeli
+      setSelectedPaymentMethod('');
+      setOrders([]);
+      setCustomerName('');
       setCustomerPhone('');
       setCustomerEmail('');
-      setCustomerCash(''); // Reset uang customer
+      setCustomerCash('');
     } catch (error) {
       Swal.fire("Terjadi kesalahan", "Gagal menyimpan transaksi", "error");
     }
@@ -422,6 +423,8 @@ const ProductPerCabang = () => {
           totalPayment,
           paymentMethod: "Qris",
           customerName,
+          customerPhone,
+          customerEmail,
           items: orders.map((order) => ({
             id: order.id,
             name: order.name,
@@ -429,8 +432,14 @@ const ProductPerCabang = () => {
             quantity: order.quantity,
           })),
         });
+        setPaymentDialogOpen(false);
         setReceiptDialogOpen(true);
-        setOrders([]);
+        setSelectedPaymentMethod('');
+        setOrders([]); // Kosongkan daftar pesanan
+        setCustomerName(''); // Reset nama pembeli
+        setCustomerPhone('');
+        setCustomerEmail('');
+        setCustomerCash('');
       });
     } catch (error) {
       console.error("Error processing QRIS payment:", error);
@@ -465,12 +474,6 @@ const ProductPerCabang = () => {
     const totalPayment = parseFloat(rawTotalPayment);
     const customerCashValue = totalPayment;
     const change = customerCashValue - totalPayment;
-
-    console.log({
-      totalPayment,
-      customerCashValue,
-      change
-    });
 
     try {
       await axios.post(`${getApiBaseUrl()}/createtransaksicabang`, {
@@ -514,6 +517,7 @@ const ProductPerCabang = () => {
 
       setPaymentDialogOpen(false);
       setReceiptDialogOpen(true);
+      setSelectedPaymentMethod('');
       setOrders([]);
       setCustomerName('');
       setCustomerPhone('');
@@ -767,6 +771,7 @@ const ProductPerCabang = () => {
 
     const change = parseFloat(customerCash || 0) - total;
 
+
     const receiptContent = `
       <!DOCTYPE html>
       <html>
@@ -833,7 +838,8 @@ const ProductPerCabang = () => {
         <body>
           <div class="header">
            <p class="store-name">${user?.cabang?.namacabang || "Cabang Tidak Diketahui"}</p>
-            <p class="customer-name">Pemesan: ${customerName || "Tidak Diketahui"}</p>
+            <p class="customer-name">Nama Pemesan: ${receiptData?.customerName || "Tidak Diketahui"}</p>
+            <p class="customer-name">Telepon Pemesan: ${receiptData?.customerPhone || "Tidak Diketahui"}</p>
             <p class="date">${formatDate(new Date())}</p>
           </div>
           <div class="divider"></div>
@@ -852,8 +858,8 @@ const ProductPerCabang = () => {
           <div class="divider"></div>
           <p class="total">Total: Rp ${total.toLocaleString()}</p>
           ${receiptData.paymentMethod === "Cash"
-        ? `<p class="total">Uang Customer: Rp ${parseFloat(customerCash || 0).toLocaleString()}</p>
-                 <p class="change">Kembalian: Rp ${change > 0 ? change.toLocaleString() : 0}</p>`
+        ? `<p class="total">Uang Customer: Rp ${parseFloat(receiptData?.customerCash || 0).toLocaleString()}</p>
+                 <p class="change">Kembalian: Rp ${receiptData?.change > 0 ? receiptData?.change.toLocaleString() : 0}</p>`
         : ""
       }
           <p class="payment-method">Metode Pembayaran: ${receiptData.paymentMethod || "Tidak diketahui"}</p>
@@ -985,6 +991,7 @@ const ProductPerCabang = () => {
             bgcolor: 'secondary.main',
             '&:hover': { bgcolor: 'secondary.dark' }
           }}
+          disabled={orders?.length === 0}
         >
           Pay
         </Button>

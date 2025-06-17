@@ -77,7 +77,9 @@ function PaymentMethod() {
 
     const handleSaveMethod = async () => {
         const formData = new FormData();
-        formData.append('qrisImage', currentMethod.qrisImage);
+        if (currentMethod.qrisImage instanceof File) {
+            formData.append('qrisImage', currentMethod.qrisImage);
+        }
         formData.append('isDefault', currentMethod.isDefault);
 
         try {
@@ -97,13 +99,11 @@ function PaymentMethod() {
             }
 
             // Update state dengan data yang diterima dari server
-            const newPaymentMethod = response.data.data; // Ambil data dari respons
+            const newPaymentMethod = response.data.data;
             mutate(`${getApiBaseUrl()}/paymentmethods`, (prev) => {
                 if (isEditing) {
-                    // Update metode pembayaran yang sudah ada
                     return prev.map(method => method.id === newPaymentMethod.id ? newPaymentMethod : method);
                 } else {
-                    // Tambahkan metode pembayaran baru
                     return [...prev, newPaymentMethod];
                 }
             }, false);

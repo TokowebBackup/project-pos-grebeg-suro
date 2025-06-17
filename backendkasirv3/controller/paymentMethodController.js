@@ -1,6 +1,5 @@
 // controllers/paymentMethodController.js
 const PaymentMethod = require('../models/paymentMethodModel');
-const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
@@ -35,11 +34,38 @@ exports.getAllPaymentMethods = async (req, res) => {
 };
 
 // Tambah metode pembayaran dengan upload file
-exports.uploadQrisImage = (req, res, next) => {
+exports.uploadQrisImage = async (req, res, next) => {
+    // Jika tidak ada file dan ini request POST (create), tolak
     if (!req.files || !req.files.qrisImage) {
-        return res.status(400).json({ status: false, message: 'QRIS image is required' });
+        if (req.method === 'POST') {
+            return res.status(400).json({ status: false, message: 'QRIS image is required' });
+        } else {
+            // PUT/UPDATE boleh tanpa file
+            return next();
+        }
     }
-    next();
+
+    try {
+        const file = req.files.qrisImage;
+
+        // Buat nama unik
+        const filename = Date.now() + '-' + file.name.replace(/\s+/g, '-');
+        const uploadPath = path.join(__dirname, '../public/uploads/qris', filename);
+
+        // Simpan file
+        await file.mv(uploadPath);
+
+        // Set supaya bisa dibaca controller
+        req.file = { filename };
+
+        next();
+    } catch (error) {
+        return res.status(500).json({
+            status: false,
+            message: 'Failed to upload QRIS image',
+            error: error.message,
+        });
+    }
 };
 
 // Tambah metode pembayaran dengan upload file
@@ -98,10 +124,11 @@ exports.updatePaymentMethod = async (req, res) => {
             return res.status(404).json({ status: false, message: 'Metode pembayaran tidak ditemukan' });
         }
 
+        // Jika ada file baru dikirim, ganti file-nya
         if (req.file) {
-            // Jika ada upload baru, update path gambar
-            method.file = `/uploads/qris/${req.file.filename}`; // Gunakan 'file' sebagai nama field
+            method.file = `/uploads/qris/${req.file.filename}`;
         }
+
         method.isDefault = isDefault !== undefined ? isDefault : method.isDefault;
 
         await method.save();
